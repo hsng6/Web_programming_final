@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+프로토타입_스크린샷_가이드.md
+프로토타입_제작가이드.md
+GitHub_업로드_가이드.md
+프로토타입_이미지/

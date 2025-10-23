@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 고객센터</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="support-container">
+        <h2>고객센터</h2>
+
+        <section class="support-info">
+            <div class="info-box">
+                <h3>📞 고객센터 전화</h3>
+                <p class="phone-number">1588-1234</p>
+                <p class="support-hours">평일 09:00 - 18:00 (주말 및 공휴일 휴무)</p>
+            </div>
+            <div class="info-box">
+                <h3>📧 이메일 문의</h3>
+                <p class="email">support@insook.com</p>
+                <p class="support-hours">24시간 접수 가능 (답변은 영업일 기준 1-2일)</p>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h3>자주 묻는 질문 (FAQ)</h3>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>배송은 얼마나 걸리나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        결제 완료 후 평균 2-3일 내 배송됩니다. 지역에 따라 차이가 있을 수 있으며, 주말 및 공휴일에는 배송이 지연될 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>교환/환불은 어떻게 하나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        상품 수령 후 7일 이내 교환/환불이 가능합니다. 단, 착용 또는 사용한 상품, 택이 제거된 상품은 교환/환불이 불가합니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>배송비는 얼마인가요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        30,000원 이상 구매 시 무료배송이며, 미만 시 3,000원의 배송비가 부과됩니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>회원가입 없이 구매 가능한가요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        현재는 회원가입 없이도 구매 가능합니다. 단, 주문내역 조회 및 적립금 혜택을 받으시려면 회원가입을 권장드립니다.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>결제 방법은 무엇이 있나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        신용카드, 체크카드, 무통장입금, 카카오페이, 네이버페이 등 다양한 결제수단을 지원합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="inquiry-section">
+            <h3>1:1 문의하기</h3>
+            <form id="inquiry-form">
+                <div class="form-group">
+                    <label for="inquiry-name">이름</label>
+                    <input type="text" id="inquiry-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inquiry-email">이메일</label>
+                    <input type="email" id="inquiry-email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inquiry-type">문의 유형</label>
+                    <select id="inquiry-type" required>
+                        <option value="">선택하세요</option>
+                        <option value="order">주문/배송</option>
+                        <option value="product">상품문의</option>
+                        <option value="return">교환/환불</option>
+                        <option value="etc">기타</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inquiry-subject">제목</label>
+                    <input type="text" id="inquiry-subject" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inquiry-message">문의 내용</label>
+                    <textarea id="inquiry-message" rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">문의 등록</button>
+            </form>
+        </section>
+
+        <section class="my-inquiries-section">
+            <h3>나의 문의내역</h3>
+            <div id="inquiries-list">
+                <!-- Inquiries will be loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('.faq-icon');
+            
+            answer.classList.toggle('active');
+            icon.classList.toggle('rotated');
+        }
+
+        function loadInquiries() {
+            const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
+            const inquiriesList = document.getElementById('inquiries-list');
+            
+            inquiriesList.innerHTML = '';
+            
+            if (inquiries.length === 0) {
+                inquiriesList.innerHTML = '<p class="empty-message">문의 내역이 없습니다.</p>';
+                return;
+            }
+
+            inquiries.reverse().forEach((inquiry, index) => {
+                const inquiryDiv = document.createElement('div');
+                inquiryDiv.className = 'inquiry-card';
+                inquiryDiv.innerHTML = `
+                    <div class="inquiry-header">
+                        <span class="inquiry-type">[${inquiry.type}]</span>
+                        <span class="inquiry-subject">${inquiry.subject}</span>
+                        <span class="inquiry-date">${inquiry.date}</span>
+                    </div>
+                    <div class="inquiry-status ${inquiry.answered ? 'answered' : 'pending'}">
+                        ${inquiry.answered ? '답변완료' : '답변대기'}
+                    </div>
+                `;
+                inquiriesList.appendChild(inquiryDiv);
+            });
+        }
+
+        document.getElementById('inquiry-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const inquiry = {
+                name: document.getElementById('inquiry-name').value,
+                email: document.getElementById('inquiry-email').value,
+                type: document.getElementById('inquiry-type').options[document.getElementById('inquiry-type').selectedIndex].text,
+                subject: document.getElementById('inquiry-subject').value,
+                message: document.getElementById('inquiry-message').value,
+                date: new Date().toLocaleDateString('ko-KR'),
+                answered: false
+            };
+            
+            const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
+            inquiries.push(inquiry);
+            localStorage.setItem('inquiries', JSON.stringify(inquiries));
+            
+            alert('문의가 등록되었습니다. 빠른 시일 내에 답변드리겠습니다.');
+            this.reset();
+            loadInquiries();
+        });
+
+        // Load theme on page load
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            loadInquiries();
+        });
+    </script>
+</body>
+</html>

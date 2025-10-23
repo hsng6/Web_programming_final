@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 장바구니</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+    <main>
+        <div id="cart-items">
+            <!-- JavaScript에서 동적으로 장바구니 아이템을 추가합니다 -->
+        </div>
+        <div id="cart-total">
+            <h2>총 금액: <span id="total-price">₩0</span></h2>
+            <button id="checkout">결제하기</button>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+    <script src="main.js"></script>
+    <script>
+        // Load and display cart items
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const cartItemsDiv = document.getElementById("cart-items");
+            const totalPriceSpan = document.getElementById("total-price");
+
+            cartItemsDiv.innerHTML = "";
+
+            if (cart.length === 0) {
+                cartItemsDiv.innerHTML = "<p>장바구니가 비어있습니다.</p>";
+                totalPriceSpan.textContent = "₩0";
+                return;
+            }
+
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                // quantity 처리 (기존 qty와 새로운 quantity 모두 지원)
+                const quantity = item.quantity || item.qty || 1;
+                const itemTotal = item.price * quantity;
+                total += itemTotal;
+
+                const cartItem = document.createElement("div");
+                cartItem.className = "cart-item";
+                cartItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="item-details">
+                        <h3>${item.name}</h3>
+                        ${item.size ? `<p class="item-size">사이즈: <strong>${item.size}</strong></p>` : ''}
+                        <p class="item-price">단가: ₩${item.price.toLocaleString()}</p>
+                        <div class="quantity-control">
+                            <label for="quantity-${index}">수량:</label>
+                            <div class="quantity-buttons">
+                                <button class="qty-decrease" data-index="${index}">-</button>
+                                <input type="number" id="quantity-${index}" class="quantity-input" value="${quantity}" min="1" readonly data-index="${index}">
+                                <button class="qty-increase" data-index="${index}">+</button>
+                            </div>
+                        </div>
+                        <p class="item-total">소계: ₩${itemTotal.toLocaleString()}</p>
+                        <button class="remove-item" data-index="${index}">삭제</button>
+                    </div>
+                `;
+                cartItemsDiv.appendChild(cartItem);
+            });
+
+            totalPriceSpan.textContent = `₩${total.toLocaleString()}`;
+
+            // Add event listeners for quantity increase
+            document.querySelectorAll('.qty-increase').forEach(button => {
+                button.addEventListener('click', function () {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+                    const currentQty = cart[index].quantity || cart[index].qty || 1;
+                    updateQuantity(index, currentQty + 1);
+                });
+            });
+
+            // Add event listeners for quantity decrease
+            document.querySelectorAll('.qty-decrease').forEach(button => {
+                button.addEventListener('click', function () {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+                    const currentQty = cart[index].quantity || cart[index].qty || 1;
+                    if (currentQty > 1) {
+                        updateQuantity(index, currentQty - 1);
+                    }
+                });
+            });
+
+            // Add event listeners for remove buttons
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', function () {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removeItem(index);
+                });
+            });
+        }
+
+        function updateQuantity(index, newQty) {
+            if (newQty < 1) return;
+
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            if (cart[index]) {
+                // quantity와 qty 모두 업데이트
+                cart[index].quantity = newQty;
+                cart[index].qty = newQty;
+                cart[index].qty = newQty;
+                localStorage.setItem("cart", JSON.stringify(cart));
+                loadCart();
+            }
+        }
+
+        function removeItem(index) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            cart.splice(index, 1);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            loadCart();
+        }
+
+        // Load theme on page load
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Load cart on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTheme();
+            loadCart();
+        });
+
+        // Checkout button
+        document.getElementById('checkout').addEventListener('click', function () {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            if (cart.length === 0) {
+                alert("장바구니가 비어있습니다!");
+                return;
+            }
+            window.location.href = "payment.html";
+        });
+    </script>
+</body>
+
+</html>

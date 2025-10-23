@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 마이페이지</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="mypage-container">
+        <h2>마이페이지</h2>
+        
+        <section class="user-info-section">
+            <h3>회원 정보</h3>
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">이름:</span>
+                    <span class="info-value" id="user-name">홍길동</span>
+                    <button class="edit-btn" onclick="editUserInfo('name')">수정</button>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">이메일:</span>
+                    <span class="info-value" id="user-email">user@example.com</span>
+                    <button class="edit-btn" onclick="editUserInfo('email')">수정</button>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">전화번호:</span>
+                    <span class="info-value" id="user-phone">010-1234-5678</span>
+                    <button class="edit-btn" onclick="editUserInfo('phone')">수정</button>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">주소:</span>
+                    <span class="info-value" id="user-address">서울시 강남구 테헤란로 123</span>
+                    <button class="edit-btn" onclick="editUserInfo('address')">수정</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-links-section">
+            <h3>빠른 메뉴</h3>
+            <div class="quick-links-grid">
+                <a href="orders.html" class="quick-link-card">
+                    <div class="quick-link-icon">📦</div>
+                    <div class="quick-link-title">주문내역</div>
+                    <div class="quick-link-desc">주문 및 배송조회</div>
+                </a>
+                <a href="cart.html" class="quick-link-card">
+                    <div class="quick-link-icon">🛒</div>
+                    <div class="quick-link-title">장바구니</div>
+                    <div class="quick-link-desc">담긴 상품 확인</div>
+                </a>
+                <a href="support.html" class="quick-link-card">
+                    <div class="quick-link-icon">💬</div>
+                    <div class="quick-link-title">고객센터</div>
+                    <div class="quick-link-desc">1:1 문의하기</div>
+                </a>
+                <a href="#" class="quick-link-card" onclick="alert('준비 중입니다.'); return false;">
+                    <div class="quick-link-icon">⭐</div>
+                    <div class="quick-link-title">찜 목록</div>
+                    <div class="quick-link-desc">관심 상품 보기</div>
+                </a>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <h3>나의 활동</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-orders">0</div>
+                    <div class="stat-label">총 주문</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-reviews">0</div>
+                    <div class="stat-label">작성 리뷰</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="cart-items">0</div>
+                    <div class="stat-label">장바구니</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // Load theme on page load
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Load user statistics
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            
+            // Load user info from localStorage
+            const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {
+                name: '홍길동',
+                email: 'user@example.com',
+                phone: '010-1234-5678',
+                address: '서울시 강남구 테헤란로 123'
+            };
+
+            document.getElementById('user-name').textContent = userInfo.name;
+            document.getElementById('user-email').textContent = userInfo.email;
+            document.getElementById('user-phone').textContent = userInfo.phone;
+            document.getElementById('user-address').textContent = userInfo.address;
+
+            // Load statistics
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            document.getElementById('total-orders').textContent = orders.length;
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            document.getElementById('cart-items').textContent = cart.length;
+
+            // Count total reviews
+            let totalReviews = 0;
+            PRODUCTS.forEach(product => {
+                const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
+                totalReviews += reviews.length;
+            });
+            document.getElementById('total-reviews').textContent = totalReviews;
+        });
+
+        function editUserInfo(field) {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
+            const fieldNames = {
+                name: '이름',
+                email: '이메일',
+                phone: '전화번호',
+                address: '주소'
+            };
+
+            const newValue = prompt(`새로운 ${fieldNames[field]}을(를) 입력하세요:`, userInfo[field]);
+            
+            if (newValue && newValue.trim()) {
+                userInfo[field] = newValue.trim();
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                document.getElementById(`user-${field}`).textContent = newValue.trim();
+                alert('정보가 수정되었습니다.');
+            }
+        }
+    </script>
+</body>
+</html>

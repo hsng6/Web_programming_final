@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 찜한 상품</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="상품 검색...">
+            <button id="search-btn">검색</button>
+        </div>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니 <span id="cart-count">0</span></a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="wishlist-container">
+        <h2>❤️ 찜한 상품</h2>
+        
+        <div id="wishlist-list" class="product-grid">
+            <!-- Wishlist products will be loaded here -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="main.js"></script>
+    <script>
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cart-count').textContent = totalItems;
+        }
+
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        function loadWishlist() {
+            const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            const wishlistList = document.getElementById('wishlist-list');
+            
+            wishlistList.innerHTML = '';
+            
+            if (wishlist.length === 0) {
+                wishlistList.innerHTML = '<p class="empty-message">찜한 상품이 없습니다.</p>';
+                return;
+            }
+
+            wishlist.forEach(productId => {
+                const product = PRODUCTS.find(p => p.id === productId);
+                if (!product) return;
+
+                const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
+                const reviewCount = reviews.length;
+                const averageRating = reviewCount > 0 
+                    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount).toFixed(1)
+                    : 0;
+
+                const productCard = document.createElement("div");
+                productCard.className = "product-card";
+                productCard.onclick = function() { 
+                    window.location.href = `product.html?id=${product.id}`;
+                };
+                productCard.innerHTML = `
+                    <button class="wishlist-btn active" onclick="event.stopPropagation(); removeFromWishlist(${product.id});" title="찜 해제">❤️</button>
+                    <img src="${product.image}" alt="${product.name}" loading="lazy">
+                    <h3>${product.name}</h3>
+                    <p class="product-price">₩${product.price.toLocaleString()}</p>
+                    <div class="product-review-info">
+                        <span class="rating-stars">${'⭐'.repeat(Math.round(averageRating))}</span>
+                        <span class="rating-text">${averageRating} (${reviewCount})</span>
+                    </div>
+                    <button class="cart-icon-btn" onclick="event.stopPropagation(); addToCart(${product.id}); updateCartCount(); showToast('장바구니에 추가되었습니다 🛒');" title="장바구니에 추가">🛒</button>
+                `;
+                wishlistList.appendChild(productCard);
+            });
+        }
+
+        function removeFromWishlist(productId) {
+            let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+            wishlist = wishlist.filter(id => id !== productId);
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            
+            showToast('찜 목록에서 제거되었습니다');
+            loadWishlist();
+        }
+
+        // Load theme on page load
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            updateCartCount();
+            loadWishlist();
+        });
+    </script>
+</body>
+</html>

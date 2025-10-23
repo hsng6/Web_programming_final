@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - AI 핏 분석</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="상품 검색...">
+            <button id="search-btn">검색</button>
+        </div>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏 분석</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니 <span id="cart-count">0</span></a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="ai-fit-container">
+        <div class="ai-fit-header">
+            <h2>🤖 AI 스마트 핏 분석</h2>
+            <p class="ai-fit-description">
+                당신의 신체 조건을 입력하면, AI가 완벽한 핏을 분석하여<br>
+                최적의 사이즈와 어울리는 스타일을 추천해드립니다.
+            </p>
+        </div>
+
+        <!-- 체형 입력 섹션 -->
+        <section class="body-input-section" id="body-input-section">
+            <h3>📏 신체 정보 입력</h3>
+            <form id="body-measurement-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gender">성별 *</label>
+                        <select id="gender" required>
+                            <option value="">선택하세요</option>
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="height">키 (cm) *</label>
+                        <input type="number" id="height" placeholder="예: 175" min="140" max="210" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weight">체중 (kg) *</label>
+                        <input type="number" id="weight" placeholder="예: 70" min="40" max="150" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="chest">가슴둘레 (cm)</label>
+                        <input type="number" id="chest" placeholder="예: 95" min="70" max="150">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="waist">허리둘레 (cm) *</label>
+                        <input type="number" id="waist" placeholder="예: 30" min="20" max="50" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hip">엉덩이둘레 (cm)</label>
+                        <input type="number" id="hip" placeholder="예: 95" min="70" max="150">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shoulder">어깨너비 (cm)</label>
+                        <input type="number" id="shoulder" placeholder="예: 44" min="30" max="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="arm-length">팔길이 (cm)</label>
+                        <input type="number" id="arm-length" placeholder="예: 60" min="40" max="80">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="leg-length">다리길이 (cm)</label>
+                        <input type="number" id="leg-length" placeholder="예: 105" min="70" max="130">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="body-type">체형 타입</label>
+                        <select id="body-type">
+                            <option value="">선택하세요</option>
+                            <option value="slim">마른 체형</option>
+                            <option value="athletic">운동 체형</option>
+                            <option value="average">표준 체형</option>
+                            <option value="muscular">근육질 체형</option>
+                            <option value="curvy">풍만한 체형</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fit-preference">선호하는 핏</label>
+                        <select id="fit-preference">
+                            <option value="">선택하세요</option>
+                            <option value="tight">타이트 핏</option>
+                            <option value="slim">슬림 핏</option>
+                            <option value="regular">레귤러 핏</option>
+                            <option value="relaxed">릴렉스 핏</option>
+                            <option value="oversized">오버사이즈 핏</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="concern">핏 고민사항</label>
+                        <select id="concern">
+                            <option value="">선택하세요</option>
+                            <option value="shoulder">어깨가 넓음</option>
+                            <option value="chest">가슴이 큼</option>
+                            <option value="belly">배가 나옴</option>
+                            <option value="hip">엉덩이가 큼</option>
+                            <option value="arm">팔이 굵음</option>
+                            <option value="leg">다리가 짧음</option>
+                            <option value="leg-thick">다리가 굵음</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="ai-analyze-btn">
+                    🤖 AI 핏 분석 시작
+                </button>
+            </form>
+        </section>
+
+        <!-- AI 분석 결과 섹션 -->
+        <section class="ai-result-section" id="ai-result-section" style="display: none;">
+            <h3>📊 AI 분석 결과</h3>
+            
+            <!-- BMI & 체형 분석 -->
+            <div class="analysis-card">
+                <h4>📈 체형 분석</h4>
+                <div class="bmi-result">
+                    <div class="bmi-info">
+                        <p><strong>BMI 지수:</strong> <span id="bmi-value">0</span></p>
+                        <p><strong>체형 판정:</strong> <span id="body-status">표준</span></p>
+                    </div>
+                    <div class="bmi-gauge">
+                        <div class="bmi-bar">
+                            <div class="bmi-indicator" id="bmi-indicator"></div>
+                        </div>
+                        <div class="bmi-labels">
+                            <span>저체중</span>
+                            <span>표준</span>
+                            <span>과체중</span>
+                            <span>비만</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 추천 사이즈 -->
+            <div class="analysis-card">
+                <h4>👕 카테고리별 추천 사이즈</h4>
+                <div class="size-recommendations" id="size-recommendations">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <!-- 상세 사이즈 가이드 -->
+            <div class="analysis-card">
+                <h4>📐 상세 사이즈 가이드</h4>
+                <div class="size-guide-table" id="size-guide-table">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <!-- 핏 조언 -->
+            <div class="analysis-card">
+                <h4>💡 AI 스타일링 조언</h4>
+                <div class="fit-advice" id="fit-advice">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <!-- 추천 상품 -->
+            <div class="analysis-card">
+                <h4>🎯 당신을 위한 맞춤 추천 상품</h4>
+                <div class="recommended-products" id="recommended-products">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-save-profile" onclick="saveBodyProfile()">
+                    💾 프로필 저장하기
+                </button>
+                <button class="btn-re-analyze" onclick="reAnalyze()">
+                    🔄 다시 분석하기
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="main.js"></script>
+    <script>
+        // AI 핏 분석 시스템
+        const AI_FIT_SYSTEM = {
+            // BMI 계산
+            calculateBMI(height, weight) {
+                const heightM = height / 100;
+                return (weight / (heightM * heightM)).toFixed(1);
+            },
+
+            // BMI 판정
+            getBMIStatus(bmi) {
+                if (bmi < 18.5) return { status: '저체중', color: '#5bc0de' };
+                if (bmi < 23) return { status: '표준', color: '#5cb85c' };
+                if (bmi < 25) return { status: '과체중', color: '#f0ad4e' };
+                return { status: '비만', color: '#d9534f' };
+            },
+
+            // 체형 비율 분석
+            analyzeBodyRatio(data) {
+                const { height, weight, chest, waist, hip, shoulder } = data;
+                const analysis = {
+                    shoulderToWaist: shoulder && waist ? (shoulder / waist).toFixed(2) : null,
+                    waistToHip: waist && hip ? (waist / hip).toFixed(2) : null,
+                    upperBody: chest && waist ? chest - waist : null,
+                    lowerBody: hip && waist ? hip - waist : null
+                };
+                return analysis;
+            },
+
+            // 사이즈 추천 (상의)
+            recommendTopSize(data) {
+                const { gender, height, weight, chest, shoulder } = data;
+                let size = 'M';
+                let detailedSize = {};
+
+                if (gender === 'male') {
+                    if (chest < 90) size = 'S';
+                    else if (chest < 96) size = 'M';
+                    else if (chest < 102) size = 'L';
+                    else if (chest < 108) size = 'XL';
+                    else size = 'XXL';
+
+                    detailedSize = {
+                        chest: chest || Math.round(weight * 1.3 + 5),
+                        shoulder: shoulder || Math.round(height * 0.25),
+                        length: Math.round(height * 0.42),
+                        sleeve: Math.round(height * 0.34)
+                    };
+                } else {
+                    if (chest < 82) size = 'S';
+                    else if (chest < 88) size = 'M';
+                    else if (chest < 94) size = 'L';
+                    else if (chest < 100) size = 'XL';
+                    else size = 'XXL';
+
+                    detailedSize = {
+                        chest: chest || Math.round(weight * 1.2 + 5),
+                        shoulder: shoulder || Math.round(height * 0.23),
+                        length: Math.round(height * 0.38),
+                        sleeve: Math.round(height * 0.32)
+                    };
+                }
+
+                return { size, detailedSize };
+            },
+
+            // 사이즈 추천 (하의)
+            recommendBottomSize(data) {
+                const { gender, height, waist, hip, legLength } = data;
+                let size = 30;
+                let detailedSize = {};
+
+                // 허리 사이즈 기반
+                size = waist || Math.round(height * 0.17);
+
+                if (gender === 'male') {
+                    detailedSize = {
+                        waist: waist || size,
+                        hip: hip || Math.round(size * 1.3),
+                        rise: Math.round(height * 0.16),
+                        inseam: legLength || Math.round(height * 0.45),
+                        thigh: Math.round(size * 0.8),
+                        hem: Math.round(size * 0.5)
+                    };
+                } else {
+                    detailedSize = {
+                        waist: waist || size,
+                        hip: hip || Math.round(size * 1.4),
+                        rise: Math.round(height * 0.14),
+                        inseam: legLength || Math.round(height * 0.43),
+                        thigh: Math.round(size * 0.85),
+                        hem: Math.round(size * 0.45)
+                    };
+                }
+
+                return { size, detailedSize };
+            },
+
+            // 아우터 사이즈 추천
+            recommendOuterSize(data) {
+                const topSize = this.recommendTopSize(data);
+                const { fitPreference } = data;
+
+                let adjustedSize = topSize.size;
+                if (fitPreference === 'oversized') {
+                    const sizeMap = { 'S': 'M', 'M': 'L', 'L': 'XL', 'XL': 'XXL', 'XXL': 'XXXL' };
+                    adjustedSize = sizeMap[topSize.size] || 'XXL';
+                } else if (fitPreference === 'tight') {
+                    const sizeMap = { 'M': 'S', 'L': 'M', 'XL': 'L', 'XXL': 'XL' };
+                    adjustedSize = sizeMap[topSize.size] || topSize.size;
+                }
+
+                return { size: adjustedSize, detailedSize: topSize.detailedSize };
+            },
+
+            // 신발 사이즈 추천
+            recommendShoeSize(data) {
+                const { gender, height } = data;
+                let size;
+
+                if (gender === 'male') {
+                    size = Math.round(height * 0.15);
+                } else {
+                    size = Math.round(height * 0.14);
+                }
+
+                return { size, note: '발 형태에 따라 ±0.5cm 조정 권장' };
+            },
+
+            // 스타일링 조언 생성
+            generateStylingAdvice(data) {
+                const { bodyType, concern, fitPreference, gender } = data;
+                const advice = [];
+
+                // 체형별 조언
+                if (bodyType === 'slim') {
+                    advice.push('마른 체형은 레이어드 룩으로 볼륨감을 더하세요.');
+                    advice.push('오버사이즈나 릴렉스 핏이 스타일리시해 보입니다.');
+                } else if (bodyType === 'athletic') {
+                    advice.push('탄탄한 체형은 슬림핏이 멋스러워 보입니다.');
+                    advice.push('스트레치 소재로 활동성을 높이세요.');
+                } else if (bodyType === 'muscular') {
+                    advice.push('근육질 체형은 레귤러 핏이 편안하고 균형잡혀 보입니다.');
+                    advice.push('어깨선이 맞는 옷을 선택하는 것이 중요합니다.');
+                } else if (bodyType === 'curvy') {
+                    advice.push('곡선미를 살리는 세미핏 스타일을 추천합니다.');
+                    advice.push('신축성 있는 소재가 편안합니다.');
+                }
+
+                // 고민사항별 조언
+                if (concern === 'belly') {
+                    advice.push('✓ 허리라인이 루즈한 스타일로 커버하세요.');
+                    advice.push('✓ 긴 기장의 상의나 아우터로 시선을 분산시키세요.');
+                } else if (concern === 'shoulder') {
+                    advice.push('✓ 래글런 슬리브나 드롭 숄더로 어깨를 부드럽게 표현하세요.');
+                    advice.push('✓ V넥 상의로 상체 실루엣을 슬림하게 만드세요.');
+                } else if (concern === 'leg-thick') {
+                    advice.push('✓ 스트레이트나 와이드 핏 바지로 하체 균형을 맞추세요.');
+                    advice.push('✓ 어두운 색상의 하의를 선택하세요.');
+                } else if (concern === 'leg') {
+                    advice.push('✓ 허리라인이 높은 하의로 다리를 길어보이게 하세요.');
+                    advice.push('✓ 크롭 상의와 하이웨이스트 조합을 추천합니다.');
+                }
+
+                // 선호 핏별 조언
+                if (fitPreference === 'oversized') {
+                    advice.push('오버사이즈는 하의를 슬림하게 매치하면 균형감이 좋습니다.');
+                } else if (fitPreference === 'slim') {
+                    advice.push('슬림핏은 신축성 있는 소재를 선택하면 활동이 편합니다.');
+                }
+
+                return advice;
+            },
+
+            // 맞춤 상품 추천
+            recommendProducts(data, allProducts) {
+                const { bodyType, fitPreference, concern, gender } = data;
+                const topSize = this.recommendTopSize(data);
+                const bottomSize = this.recommendBottomSize(data);
+                
+                const recommended = [];
+
+                allProducts.forEach(product => {
+                    let score = 0;
+                    const productName = product.name.toLowerCase();
+
+                    // 카테고리별 매칭
+                    if (product.category === 'TOPS') {
+                        if (bodyType === 'slim' && (productName.includes('오버') || productName.includes('루즈'))) score += 3;
+                        if (bodyType === 'athletic' && productName.includes('슬림')) score += 3;
+                        if (concern === 'belly' && (productName.includes('롱') || productName.includes('루즈'))) score += 2;
+                    } else if (product.category === 'PANTS') {
+                        if (concern === 'leg-thick' && (productName.includes('와이드') || productName.includes('스트레이트'))) score += 3;
+                        if (concern === 'leg' && productName.includes('하이웨이스트')) score += 3;
+                    } else if (product.category === 'OUTER') {
+                        if (fitPreference === 'oversized' && productName.includes('오버')) score += 3;
+                    }
+
+                    // 가격대 고려 (다양성)
+                    if (product.price < 50000) score += 1;
+
+                    if (score > 0) {
+                        recommended.push({ ...product, fitScore: score });
+                    }
+                });
+
+                // 점수 순으로 정렬하고 상위 6개 반환
+                return recommended.sort((a, b) => b.fitScore - a.fitScore).slice(0, 6);
+            }
+        };
+
+        // 폼 제출 처리
+        document.getElementById('body-measurement-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const data = {
+                gender: document.getElementById('gender').value,
+                height: parseInt(document.getElementById('height').value),
+                weight: parseInt(document.getElementById('weight').value),
+                chest: parseInt(document.getElementById('chest').value) || null,
+                waist: parseInt(document.getElementById('waist').value),
+                hip: parseInt(document.getElementById('hip').value) || null,
+                shoulder: parseInt(document.getElementById('shoulder').value) || null,
+                armLength: parseInt(document.getElementById('arm-length').value) || null,
+                legLength: parseInt(document.getElementById('leg-length').value) || null,
+                bodyType: document.getElementById('body-type').value,
+                fitPreference: document.getElementById('fit-preference').value,
+                concern: document.getElementById('concern').value
+            };
+
+            // AI 분석 시작
+            analyzeBody(data);
+        });
+
+        function analyzeBody(data) {
+            // 로딩 표시
+            showToast('AI가 당신의 체형을 분석중입니다... 🤖');
+
+            setTimeout(() => {
+                // BMI 계산
+                const bmi = AI_FIT_SYSTEM.calculateBMI(data.height, data.weight);
+                const bmiStatus = AI_FIT_SYSTEM.getBMIStatus(bmi);
+
+                document.getElementById('bmi-value').textContent = bmi;
+                document.getElementById('body-status').textContent = bmiStatus.status;
+                document.getElementById('body-status').style.color = bmiStatus.color;
+
+                // BMI 게이지 설정
+                const bmiIndicator = document.getElementById('bmi-indicator');
+                const bmiPosition = ((bmi - 15) / 20) * 100;
+                bmiIndicator.style.left = Math.min(Math.max(bmiPosition, 0), 100) + '%';
+                bmiIndicator.style.backgroundColor = bmiStatus.color;
+
+                // 카테고리별 사이즈 추천
+                const topSize = AI_FIT_SYSTEM.recommendTopSize(data);
+                const bottomSize = AI_FIT_SYSTEM.recommendBottomSize(data);
+                const outerSize = AI_FIT_SYSTEM.recommendOuterSize(data);
+                const shoeSize = AI_FIT_SYSTEM.recommendShoeSize(data);
+
+                const sizeRecommendations = document.getElementById('size-recommendations');
+                sizeRecommendations.innerHTML = `
+                    <div class="size-card">
+                        <div class="size-icon">👕</div>
+                        <h5>상의 (TOPS)</h5>
+                        <p class="size-value">${topSize.size}</p>
+                        <p class="size-detail">가슴둘레 ${topSize.detailedSize.chest}cm 권장</p>
+                    </div>
+                    <div class="size-card">
+                        <div class="size-icon">👖</div>
+                        <h5>하의 (PANTS)</h5>
+                        <p class="size-value">${bottomSize.size}인치</p>
+                        <p class="size-detail">허리둘레 ${bottomSize.detailedSize.waist}인치 권장</p>
+                    </div>
+                    <div class="size-card">
+                        <div class="size-icon">🧥</div>
+                        <h5>아우터 (OUTER)</h5>
+                        <p class="size-value">${outerSize.size}</p>
+                        <p class="size-detail">여유있는 핏 권장</p>
+                    </div>
+                    <div class="size-card">
+                        <div class="size-icon">👟</div>
+                        <h5>신발 (SHOES)</h5>
+                        <p class="size-value">${shoeSize.size}mm</p>
+                        <p class="size-detail">${shoeSize.note}</p>
+                    </div>
+                `;
+
+                // 상세 사이즈 가이드
+                const sizeGuideTable = document.getElementById('size-guide-table');
+                sizeGuideTable.innerHTML = `
+                    <div class="size-table">
+                        <h5>상의 세부 측정치</h5>
+                        <table>
+                            <tr><td>가슴둘레</td><td>${topSize.detailedSize.chest}cm</td></tr>
+                            <tr><td>어깨너비</td><td>${topSize.detailedSize.shoulder}cm</td></tr>
+                            <tr><td>총장</td><td>${topSize.detailedSize.length}cm</td></tr>
+                            <tr><td>소매길이</td><td>${topSize.detailedSize.sleeve}cm</td></tr>
+                        </table>
+                    </div>
+                    <div class="size-table">
+                        <h5>하의 세부 측정치</h5>
+                        <table>
+                            <tr><td>허리둘레</td><td>${bottomSize.detailedSize.waist}인치</td></tr>
+                            <tr><td>엉덩이둘레</td><td>${bottomSize.detailedSize.hip}cm</td></tr>
+                            <tr><td>밑위</td><td>${bottomSize.detailedSize.rise}cm</td></tr>
+                            <tr><td>안쪽길이</td><td>${bottomSize.detailedSize.inseam}cm</td></tr>
+                            <tr><td>허벅지둘레</td><td>${bottomSize.detailedSize.thigh}cm</td></tr>
+                            <tr><td>밑단</td><td>${bottomSize.detailedSize.hem}cm</td></tr>
+                        </table>
+                    </div>
+                `;
+
+                // 스타일링 조언
+                const advice = AI_FIT_SYSTEM.generateStylingAdvice(data);
+                const fitAdvice = document.getElementById('fit-advice');
+                fitAdvice.innerHTML = advice.map(tip => `<p class="advice-item">💡 ${tip}</p>`).join('');
+
+                // 맞춤 상품 추천
+                const recommendedProducts = AI_FIT_SYSTEM.recommendProducts(data, PRODUCTS);
+                const productsContainer = document.getElementById('recommended-products');
+                productsContainer.innerHTML = recommendedProducts.map(product => `
+                    <div class="product-card-ai" onclick="viewProduct(${product.id})">
+                        <div class="fit-badge">핏 매치 ${product.fitScore * 33}%</div>
+                        <img src="${product.image}" alt="${product.name}" loading="lazy">
+                        <h4>${product.name}</h4>
+                        <p class="product-price">₩${product.price.toLocaleString()}</p>
+                        <p class="fit-reason">추천 사이즈: ${topSize.size}</p>
+                    </div>
+                `).join('');
+
+                // 결과 섹션 표시
+                document.getElementById('body-input-section').style.display = 'none';
+                document.getElementById('ai-result-section').style.display = 'block';
+
+                // 상단으로 스크롤
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                showToast('AI 분석이 완료되었습니다! ✨');
+
+                // 분석 데이터 저장
+                localStorage.setItem('bodyAnalysis', JSON.stringify({
+                    data,
+                    topSize,
+                    bottomSize,
+                    outerSize,
+                    shoeSize,
+                    timestamp: new Date().toISOString()
+                }));
+            }, 2000);
+        }
+
+        function saveBodyProfile() {
+            const analysis = localStorage.getItem('bodyAnalysis');
+            if (analysis) {
+                showToast('프로필이 저장되었습니다! 다음부터 자동으로 맞춤 사이즈가 표시됩니다. 💾');
+            }
+        }
+
+        function reAnalyze() {
+            document.getElementById('ai-result-section').style.display = 'none';
+            document.getElementById('body-input-section').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 테마 로드
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // 페이지 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            updateCartCount();
+
+            // 저장된 분석이 있으면 불러오기 옵션 표시
+            const savedAnalysis = localStorage.getItem('bodyAnalysis');
+            if (savedAnalysis) {
+                const analysis = JSON.parse(savedAnalysis);
+                const timeDiff = new Date() - new Date(analysis.timestamp);
+                const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+
+                if (daysDiff < 30) {
+                    const loadSaved = confirm('이전에 저장된 체형 분석이 있습니다. 불러오시겠습니까?');
+                    if (loadSaved) {
+                        analyzeBody(analysis.data);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

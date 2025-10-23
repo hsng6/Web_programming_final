@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>인숖 - 결제</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo">
+      <h1>인숖</h1>
+    </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>  <main>
+    <section id="payment">
+      <h2>결제 정보</h2>
+      
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <h3>주문 상품</h3>
+        <div id="order-items"></div>
+        <div class="price-details">
+          <div class="price-row">
+            <span>상품 금액</span>
+            <span id="subtotal">₩0</span>
+          </div>
+          <div class="price-row">
+            <span>배송비</span>
+            <span>₩3,000</span>
+          </div>
+          <div class="price-row discount-row" id="discount-row" style="display: none;">
+            <span>할인 금액</span>
+            <span id="discount-amount">-₩0</span>
+          </div>
+          <div class="price-row total-row">
+            <span>최종 결제 금액</span>
+            <span id="final-total">₩0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coupon Section -->
+      <div class="coupon-section">
+        <h3>🎟️ 쿠폰 / 할인코드</h3>
+        <div class="coupon-input-group">
+          <input type="text" id="coupon-code" placeholder="쿠폰 코드를 입력하세요">
+          <button type="button" onclick="applyCoupon()">적용</button>
+        </div>
+        <p class="coupon-hint">💡 사용 가능한 쿠폰: WELCOME10 (10% 할인), SAVE5000 (5,000원 할인), FREESHIP (무료배송)</p>
+      </div>
+
+      <form id="payment-form">
+        <h3>결제 수단</h3>
+        <label for="card-number">카드 번호:</label>
+        <input type="text" id="card-number" required>
+
+        <label for="expiry-date">유효 기간:</label>
+        <input type="text" id="expiry-date" placeholder="MM/YY" required>
+
+        <label for="cvv">CVV:</label>
+        <input type="text" id="cvv" required>
+
+        <label for="cardholder-name">카드 소유자 이름:</label>
+        <input type="text" id="cardholder-name" required>
+
+        <button type="submit">결제하기</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 인숖. All rights reserved.</p>
+  </footer>
+  <script>
+    let appliedCoupon = null;
+    let discountAmount = 0;
+    let freeShipping = false;
+
+    function loadOrderSummary() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const orderItems = document.getElementById('order-items');
+      
+      orderItems.innerHTML = cart.map(item => {
+        const quantity = item.quantity || item.qty || 1;
+        const sizeInfo = item.size ? ` (${item.size})` : '';
+        return `
+          <div class="order-item-row">
+            <span>${item.name}${sizeInfo} × ${quantity}</span>
+            <span>₩${(item.price * quantity).toLocaleString()}</span>
+          </div>
+        `;
+      }).join('');
+      
+      calculateTotal();
+    }
+
+    function calculateTotal() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const subtotal = cart.reduce((sum, item) => {
+        const quantity = item.quantity || item.qty || 1;
+        return sum + (item.price * quantity);
+      }, 0);
+      const shipping = freeShipping ? 0 : 3000;
+      const finalTotal = subtotal + shipping - discountAmount;
+      
+      document.getElementById('subtotal').textContent = `₩${subtotal.toLocaleString()}`;
+      document.getElementById('final-total').textContent = `₩${finalTotal.toLocaleString()}`;
+    }
+
+    function applyCoupon() {
+      const couponCode = document.getElementById('coupon-code').value.trim().toUpperCase();
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      
+      if (!couponCode) {
+        alert('쿠폰 코드를 입력해주세요!');
+        return;
+      }
+      
+      const subtotalCalculated = cart.reduce((sum, item) => {
+        const quantity = item.quantity || item.qty || 1;
+        return sum + (item.price * quantity);
+      }, 0);
+      
+      let discount = 0;
+      let message = '';
+      freeShipping = false;
+      
+      switch(couponCode) {
+        case 'WELCOME10':
+          discount = Math.floor(subtotalCalculated * 0.1);
+          message = '10% 할인이 적용되었습니다!';
+          break;
+        case 'SAVE5000':
+          discount = 5000;
+          message = '5,000원 할인이 적용되었습니다!';
+          break;
+        case 'FREESHIP':
+          freeShipping = true;
+          message = '무료배송이 적용되었습니다!';
+          break;
+        default:
+          alert('유효하지 않은 쿠폰 코드입니다.');
+          return;
+      }
+      
+      appliedCoupon = couponCode;
+      discountAmount = discount;
+      
+      if (discount > 0) {
+        document.getElementById('discount-row').style.display = 'flex';
+        document.getElementById('discount-amount').textContent = `-₩${discount.toLocaleString()}`;
+      }
+      
+      calculateTotal();
+      alert(message);
+      document.getElementById('coupon-code').disabled = true;
+    }
+
+    document.getElementById('payment-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      
+      if (cart.length === 0) {
+        alert('장바구니가 비어있습니다!');
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const shipping = freeShipping ? 0 : 3000;
+      const total = subtotal + shipping - discountAmount;
+      
+      const order = {
+        items: cart,
+        subtotal: subtotal,
+        shipping: shipping,
+        discount: discountAmount,
+        coupon: appliedCoupon,
+        total: total,
+        date: new Date().toLocaleDateString('ko-KR'),
+        status: 'pending'
+      };
+      
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      orders.push(order);
+      localStorage.setItem('orders', JSON.stringify(orders));
+      
+      localStorage.removeItem('cart');
+      
+      alert('결제가 완료되었습니다! 주문해 주셔서 감사합니다.');
+      window.location.href = 'orders.html';
+    });
+
+    // Load theme on page load
+    function loadTheme() {
+      const isDark = localStorage.getItem('theme') === 'dark';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle').textContent = '☀️';
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTheme();
+      loadOrderSummary();
+    });
+  </script>
+</body>
+</html>
