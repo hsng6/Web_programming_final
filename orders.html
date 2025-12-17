@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖 - 주문내역</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -25,12 +27,13 @@
 
     <main class="orders-container">
         <h2>주문내역</h2>
-        
+
         <div class="orders-filter">
             <button class="filter-btn active" onclick="filterOrders('all')">전체</button>
-            <button class="filter-btn" onclick="filterOrders('pending')">배송준비중</button>
-            <button class="filter-btn" onclick="filterOrders('shipping')">배송중</button>
-            <button class="filter-btn" onclick="filterOrders('delivered')">배송완료</button>
+            <button class="filter-btn" onclick="filterOrders('결제완료')">결제완료</button>
+            <button class="filter-btn" onclick="filterOrders('상품준비중')">상품준비중</button>
+            <button class="filter-btn" onclick="filterOrders('배송중')">배송중</button>
+            <button class="filter-btn" onclick="filterOrders('배송완료')">배송완료</button>
             <button class="filter-btn" onclick="filterOrders('cancelled')">취소/환불</button>
         </div>
 
@@ -39,9 +42,32 @@
         </div>
     </main>
 
+    <!-- 배송 추적 모달 -->
+    <div id="tracking-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeTrackingModal()">&times;</span>
+            <h2>🚚 배송 추적</h2>
+            <div id="tracking-info">
+                <div class="tracking-number">
+                    <strong>송장번호:</strong> <span id="tracking-num">-</span>
+                    <button onclick="copyTrackingNumber()" class="btn-copy">복사</button>
+                </div>
+                <div class="tracking-company">
+                    <strong>택배사:</strong> <span id="courier-company">-</span>
+                </div>
+                <div class="tracking-timeline" id="tracking-timeline">
+                    <!-- 배송 단계 표시 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <p>&copy; 2025 인숖. All rights reserved.</p>
     </footer>
+
+    <!-- 토스트 알림 -->
+    <div id="toast" class="toast"></div>
 
     <script src="main.js"></script>
     <script>
@@ -50,17 +76,29 @@
         function loadOrders() {
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             const ordersList = document.getElementById('orders-list');
-            
+
             ordersList.innerHTML = '';
-            
+
             if (orders.length === 0) {
                 ordersList.innerHTML = '<p class="empty-message">주문 내역이 없습니다.</p>';
                 return;
             }
 
-            const filteredOrders = currentFilter === 'all' 
-                ? orders 
-                : orders.filter(order => order.status === currentFilter);
+            const filteredOrders = currentFilter === 'all'
+                ? orders
+                : orders.filter(order => {
+                    // 상태 매핑
+                    if (currentFilter === '상품준비중') {
+                        return order.status === '결제완료' || order.status === 'pending' || order.status === 'processing';
+                    } else if (currentFilter === '배송중') {
+                        return order.status === 'shipping';
+                    } else if (currentFilter === '배송완료') {
+                        return order.status === 'delivered';
+                    } else if (currentFilter === '결제완료') {
+                        return order.status === '결제완료' || order.status === 'pending';
+                    }
+                    return order.status === currentFilter;
+                });
 
             if (filteredOrders.length === 0) {
                 ordersList.innerHTML = '<p class="empty-message">해당하는 주문이 없습니다.</p>';
@@ -70,9 +108,11 @@
             filteredOrders.reverse().forEach((order, index) => {
                 const orderDiv = document.createElement('div');
                 orderDiv.className = 'order-card';
-                
+
                 const statusText = {
-                    'pending': '배송준비중',
+                    '결제완료': '상품준비중',
+                    'pending': '상품준비중',
+                    'processing': '상품준비중',
                     'shipping': '배송중',
                     'delivered': '배송완료',
                     'cancelled': '주문취소',
@@ -82,20 +122,29 @@
                     'exchanged': '교환완료'
                 };
 
-                const itemsHtml = order.items.map(item => `
-                    <div class="order-item">
-                        <img src="${item.image}" alt="${item.name}">
-                        <div class="order-item-info">
-                            <h4>${item.name}</h4>
-                            <p>₩${item.price.toLocaleString()} × ${item.qty}</p>
+                const itemsHtml = order.items.map(item => {
+                    const quantity = item.quantity || item.qty || 1;
+                    const price = item.price || 0;
+                    const colorInfo = item.color ? `<span style="color: #667eea;">색상: ${item.color}</span>` : '';
+                    const sizeInfo = item.size ? `<span>사이즈: ${item.size}</span>` : '';
+                    const options = [colorInfo, sizeInfo].filter(Boolean).join(' | ');
+
+                    return `
+                        <div class="order-item">
+                            <img src="${item.image}" alt="${item.name}">
+                            <div class="order-item-info">
+                                <h4>${item.name}</h4>
+                                ${options ? `<p style="font-size: 0.9em; color: #666;">${options}</p>` : ''}
+                                <p>₩${price.toLocaleString()} × ${quantity}</p>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 orderDiv.innerHTML = `
                     <div class="order-header">
                         <div class="order-date">${order.date}</div>
-                        <div class="order-status status-${order.status}">${statusText[order.status]}</div>
+                        <div class="order-status status-${order.status}">${statusText[order.status] || '배송준비중'}</div>
                     </div>
                     <div class="order-items">
                         ${itemsHtml}
@@ -107,7 +156,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 ordersList.appendChild(orderDiv);
             });
         }
@@ -115,26 +164,31 @@
         function getOrderActions(order, index) {
             const status = order.status;
             let actions = `<button class="btn-detail" onclick="viewOrderDetail(${index})">상세보기</button>`;
-            
-            if (status === 'pending') {
+
+            // 배송 추적 버튼 (배송중, 배송완료일 때)
+            if (status === '배송중' || status === '배송완료' || status === 'shipping' || status === 'delivered') {
+                actions += `<button class="btn-tracking" onclick="trackDelivery(${index})">🚚 배송추적</button>`;
+            }
+
+            if (status === '결제완료' || status === '상품준비중' || status === 'pending') {
                 actions += `<button class="btn-cancel" onclick="cancelOrder(${index})">주문취소</button>`;
-            } else if (status === 'delivered') {
+            } else if (status === '배송완료' || status === 'delivered') {
                 actions += `<button class="btn-exchange" onclick="requestExchange(${index})">교환신청</button>`;
                 actions += `<button class="btn-refund" onclick="requestRefund(${index})">환불신청</button>`;
-            } else if (status === 'shipping') {
+            } else if (status === '배송중' || status === 'shipping') {
                 actions += `<button class="btn-info" onclick="alert('배송중인 상품은 취소할 수 없습니다. 수령 후 교환/환불 신청해주세요.')">취소불가</button>`;
             }
-            
+
             return actions;
         }
 
         function cancelOrder(index) {
             if (!confirm('주문을 취소하시겠습니까?')) return;
-            
+
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             orders[index].status = 'cancelled';
             localStorage.setItem('orders', JSON.stringify(orders));
-            
+
             alert('주문이 취소되었습니다.');
             loadOrders();
         }
@@ -142,13 +196,13 @@
         function requestExchange(index) {
             const reason = prompt('교환 사유를 입력해주세요:');
             if (!reason) return;
-            
+
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             orders[index].status = 'exchange_requested';
             orders[index].exchangeReason = reason;
             orders[index].exchangeDate = new Date().toLocaleDateString();
             localStorage.setItem('orders', JSON.stringify(orders));
-            
+
             alert('교환 신청이 완료되었습니다.\n고객센터에서 확인 후 연락드리겠습니다.');
             loadOrders();
         }
@@ -156,43 +210,45 @@
         function requestRefund(index) {
             const reason = prompt('환불 사유를 입력해주세요:');
             if (!reason) return;
-            
+
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             orders[index].status = 'refund_requested';
             orders[index].refundReason = reason;
             orders[index].refundDate = new Date().toLocaleDateString();
             localStorage.setItem('orders', JSON.stringify(orders));
-            
+
             alert('환불 신청이 완료되었습니다.\n고객센터에서 확인 후 환불 처리됩니다.');
             loadOrders();
         }
 
         function filterOrders(status) {
             currentFilter = status;
-            
+
             // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
+
             // cancelled 필터는 모든 취소/환불/교환 상태 포함
             if (status === 'cancelled') {
                 const orders = JSON.parse(localStorage.getItem('orders')) || [];
                 const ordersList = document.getElementById('orders-list');
                 ordersList.innerHTML = '';
-                
-                const cancelledOrders = orders.filter(order => 
+
+                const cancelledOrders = orders.filter(order =>
                     ['cancelled', 'refund_requested', 'refunded', 'exchange_requested', 'exchanged'].includes(order.status)
                 );
-                
+
                 if (cancelledOrders.length === 0) {
                     ordersList.innerHTML = '<p class="empty-message">취소/환불 내역이 없습니다.</p>';
                     return;
                 }
-                
+
                 const statusText = {
-                    'pending': '배송준비중',
+                    '결제완료': '상품준비중',
+                    'pending': '상품준비중',
+                    'processing': '상품준비중',
                     'shipping': '배송중',
                     'delivered': '배송완료',
                     'cancelled': '주문취소',
@@ -201,11 +257,11 @@
                     'exchange_requested': '교환요청',
                     'exchanged': '교환완료'
                 };
-                
+
                 cancelledOrders.reverse().forEach((order, idx) => {
                     const orderDiv = document.createElement('div');
                     orderDiv.className = 'order-card';
-                    
+
                     const itemsHtml = order.items.map(item => `
                         <div class="order-item">
                             <img src="${item.image}" alt="${item.name}">
@@ -215,9 +271,9 @@
                             </div>
                         </div>
                     `).join('');
-                    
+
                     const originalIndex = orders.indexOf(order);
-                    
+
                     orderDiv.innerHTML = `
                         <div class="order-header">
                             <div class="order-date">${order.date}</div>
@@ -233,19 +289,19 @@
                             </div>
                         </div>
                     `;
-                    
+
                     ordersList.appendChild(orderDiv);
                 });
                 return;
             }
-            
+
             loadOrders();
         }
 
         function viewOrderDetail(index) {
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             const order = orders[index];
-            
+
             alert(`주문번호: ${index + 1}\n주문일: ${order.date}\n상태: ${order.status}\n총액: ₩${order.total.toLocaleString()}`);
         }
 
@@ -265,10 +321,142 @@
             document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // 배송 추적 기능
+        function trackDelivery(index) {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            const order = orders[index];
+
+            // 배송 정보가 없으면 생성
+            if (!order.tracking) {
+                order.tracking = generateTrackingInfo(order);
+                orders[index] = order;
+                localStorage.setItem('orders', JSON.stringify(orders));
+            }
+
+            showTrackingModal(order);
+        }
+
+        function generateTrackingInfo(order) {
+            const couriers = ['CJ대한통운', '우체국택배', '로젠택배', '한진택배', 'GS택배'];
+            const randomCourier = couriers[Math.floor(Math.random() * couriers.length)];
+            const trackingNumber = generateTrackingNumber();
+
+            return {
+                courier: randomCourier,
+                trackingNumber: trackingNumber,
+                shippedDate: new Date().toLocaleDateString(),
+                estimatedDelivery: getEstimatedDelivery()
+            };
+        }
+
+        function generateTrackingNumber() {
+            // 송장번호 형식: 1234-5678-9012
+            const part1 = Math.floor(1000 + Math.random() * 9000);
+            const part2 = Math.floor(1000 + Math.random() * 9000);
+            const part3 = Math.floor(1000 + Math.random() * 9000);
+            return `${part1}-${part2}-${part3}`;
+        }
+
+        function getEstimatedDelivery() {
+            const today = new Date();
+            today.setDate(today.getDate() + Math.floor(1 + Math.random() * 2)); // 1-2일 후
+            return today.toLocaleDateString();
+        }
+
+        function showTrackingModal(order) {
+            const modal = document.getElementById('tracking-modal');
+            const trackingNum = document.getElementById('tracking-num');
+            const courierCompany = document.getElementById('courier-company');
+            const trackingTimeline = document.getElementById('tracking-timeline');
+
+            trackingNum.textContent = order.tracking.trackingNumber;
+            courierCompany.textContent = order.tracking.courier;
+
+            // 배송 단계 타임라인
+            const steps = getDeliverySteps(order);
+            trackingTimeline.innerHTML = steps.map((step, index) => `
+                <div class="timeline-step ${step.completed ? 'completed' : ''} ${step.current ? 'current' : ''}">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${step.title}</div>
+                        <div class="timeline-date">${step.date || ''}</div>
+                        <div class="timeline-description">${step.description || ''}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        function getDeliverySteps(order) {
+            const status = order.status;
+            const orderDate = order.date;
+            const shippedDate = order.tracking?.shippedDate || '';
+            const estimatedDate = order.tracking?.estimatedDelivery || '';
+
+            const steps = [
+                {
+                    title: '주문완료',
+                    date: orderDate,
+                    description: '주문이 접수되었습니다',
+                    completed: true,
+                    current: status === '결제완료'
+                },
+                {
+                    title: '상품준비',
+                    date: status !== '결제완료' ? orderDate : '',
+                    description: '상품을 준비하고 있습니다',
+                    completed: status !== '결제완료',
+                    current: status === '상품준비중'
+                },
+                {
+                    title: '배송중',
+                    date: (status === '배송중' || status === '배송완료') ? shippedDate : '',
+                    description: (status === '배송중' || status === '배송완료') ? '상품이 배송 중입니다' : '',
+                    completed: status === '배송중' || status === '배송완료' || status === 'shipping' || status === 'delivered',
+                    current: status === '배송중' || status === 'shipping'
+                },
+                {
+                    title: '배송완료',
+                    date: status === '배송완료' || status === 'delivered' ? estimatedDate : '',
+                    description: status === '배송완료' || status === 'delivered' ? '배송이 완료되었습니다' : `예상 도착일: ${estimatedDate}`,
+                    completed: status === '배송완료' || status === 'delivered',
+                    current: status === '배송완료' || status === 'delivered'
+                }
+            ];
+
+            return steps;
+        }
+
+        function closeTrackingModal() {
+            document.getElementById('tracking-modal').style.display = 'none';
+        }
+
+        function copyTrackingNumber() {
+            const trackingNum = document.getElementById('tracking-num').textContent;
+            navigator.clipboard.writeText(trackingNum).then(() => {
+                alert('송장번호가 복사되었습니다: ' + trackingNum);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 로그인 체크
+            if (!requireLogin('주문내역은 로그인이 필요합니다.')) {
+                return;
+            }
+
             loadTheme();
             loadOrders();
+
+            // 모달 외부 클릭 시 닫기
+            window.onclick = function (event) {
+                const modal = document.getElementById('tracking-modal');
+                if (event.target === modal) {
+                    closeTrackingModal();
+                }
+            };
         });
     </script>
 </body>
+
 </html>

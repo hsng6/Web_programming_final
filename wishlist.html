@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖 - 찜한 상품</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -21,14 +23,14 @@
             <a href="orders.html">주문내역</a>
             <a href="support.html">고객센터</a>
             <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
-            <a href="cart.html" class="cart-link">🛒 장바구니 <span id="cart-count">0</span></a>
+            <a href="cart.html" class="cart-link">🛍️ 장바구니</a>
             <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
         </nav>
     </header>
 
     <main class="wishlist-container">
         <h2>❤️ 찜한 상품</h2>
-        
+
         <div id="wishlist-list" class="product-grid">
             <!-- Wishlist products will be loaded here -->
         </div>
@@ -45,8 +47,15 @@
     <script>
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-            document.getElementById('cart-count').textContent = totalItems;
+            const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) {
+                if (totalItems > 0) {
+                    countElement.classList.add('has-items');
+                } else {
+                    countElement.classList.remove('has-items');
+                }
+            }
         }
 
         function showToast(message, duration = 3000) {
@@ -61,9 +70,9 @@
         function loadWishlist() {
             const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
             const wishlistList = document.getElementById('wishlist-list');
-            
+
             wishlistList.innerHTML = '';
-            
+
             if (wishlist.length === 0) {
                 wishlistList.innerHTML = '<p class="empty-message">찜한 상품이 없습니다.</p>';
                 return;
@@ -75,13 +84,13 @@
 
                 const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
                 const reviewCount = reviews.length;
-                const averageRating = reviewCount > 0 
+                const averageRating = reviewCount > 0
                     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount).toFixed(1)
                     : 0;
 
                 const productCard = document.createElement("div");
                 productCard.className = "product-card";
-                productCard.onclick = function() { 
+                productCard.onclick = function () {
                     window.location.href = `product.html?id=${product.id}`;
                 };
                 productCard.innerHTML = `
@@ -93,7 +102,7 @@
                         <span class="rating-stars">${'⭐'.repeat(Math.round(averageRating))}</span>
                         <span class="rating-text">${averageRating} (${reviewCount})</span>
                     </div>
-                    <button class="cart-icon-btn" onclick="event.stopPropagation(); addToCart(${product.id}); updateCartCount(); showToast('장바구니에 추가되었습니다 🛒');" title="장바구니에 추가">🛒</button>
+                    <button class="cart-icon-btn" onclick="event.stopPropagation(); addToCartFromWishlist(${product.id});" title="장바구니에 추가">🛒</button>
                 `;
                 wishlistList.appendChild(productCard);
             });
@@ -103,9 +112,22 @@
             let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
             wishlist = wishlist.filter(id => id !== productId);
             localStorage.setItem('wishlist', JSON.stringify(wishlist));
-            
+
             showToast('찜 목록에서 제거되었습니다');
             loadWishlist();
+        }
+
+        // 장바구니 추가 (로그인 체크 포함)
+        function addToCartFromWishlist(productId) {
+            if (!window.isLoggedIn || !window.isLoggedIn()) {
+                if (confirm('장바구니는 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
+                    window.location.href = 'login.html?return=' + encodeURIComponent(window.location.pathname);
+                }
+                return;
+            }
+            addToCart(productId);
+            updateCartCount();
+            showToast('장바구니에 추가되었습니다 🛒');
         }
 
         // Load theme on page load
@@ -124,11 +146,17 @@
             document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // 로그인 체크
+            if (!requireLogin('찜 목록은 로그인이 필요합니다.')) {
+                return;
+            }
+
             loadTheme();
             updateCartCount();
             loadWishlist();
         });
     </script>
 </body>
+
 </html>

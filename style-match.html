@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 스타일 매칭</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html">🤖 AI 핏</a>
+            <a href="virtual-fitting.html">👗 가상 피팅룸</a>
+            <a href="style-match.html" class="highlight-link">✨ 스타일 매칭</a>
+            <a href="recommendations.html">✨ 추천</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="cart.html">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="style-match-container">
+        <h2>🎨 AI 스타일 매칭</h2>
+        <p class="subtitle">상품을 선택하면 AI가 어울리는 코디를 추천해드립니다!</p>
+
+        <div class="match-workspace">
+            <!-- 기본 아이템 선택 -->
+            <section class="base-item-section">
+                <h3>1️⃣ 기본 아이템 선택</h3>
+                <div class="category-tabs">
+                    <button class="tab-btn active" onclick="loadBaseItems('TOPS')">상의</button>
+                    <button class="tab-btn" onclick="loadBaseItems('PANTS')">하의</button>
+                    <button class="tab-btn" onclick="loadBaseItems('OUTER')">아우터</button>
+                    <button class="tab-btn" onclick="loadBaseItems('SHOES')">신발</button>
+                </div>
+                <div id="base-items-grid" class="items-grid">
+                    <!-- 아이템들이 로드됩니다 -->
+                </div>
+            </section>
+
+            <!-- AI 코디 추천 결과 -->
+            <section class="matching-result">
+                <h3>2️⃣ AI 추천 코디</h3>
+                <div id="matching-display" class="matching-display">
+                    <div class="placeholder-message">
+                        <p>👔</p>
+                        <p>아이템을 선택하면</p>
+                        <p>AI가 어울리는 코디를 추천해드립니다!</p>
+                    </div>
+                    <div id="matched-outfit" class="matched-outfit" style="display: none;">
+                        <div class="outfit-preview">
+                            <div class="outfit-item base-item">
+                                <img id="base-item-img" src="" alt="Base Item">
+                                <div class="item-label">선택한 아이템</div>
+                            </div>
+                            <div class="plus-icon">+</div>
+                            <div class="outfit-item matched-item">
+                                <img id="matched-item-img" src="" alt="Matched Item">
+                                <div class="item-label">추천 아이템</div>
+                            </div>
+                        </div>
+                        <div class="outfit-details">
+                            <h4>💡 코디 설명</h4>
+                            <p id="outfit-explanation"></p>
+                            <div class="outfit-tags" id="outfit-tags"></div>
+                        </div>
+                        <div class="outfit-actions">
+                            <button class="btn-primary" onclick="addOutfitToCart()">전체 담기</button>
+                            <button class="btn-secondary" onclick="refreshMatch()">다른 코디 보기</button>
+                            <button class="btn-secondary" onclick="saveOutfit()">저장하기</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 완성된 코디 목록 -->
+            <section class="complete-outfits">
+                <h3>3️⃣ 추가 코디 제안</h3>
+                <div id="more-outfits" class="more-outfits-grid">
+                    <!-- 추가 코디들이 표시됩니다 -->
+                </div>
+            </section>
+        </div>
+
+        <!-- 저장된 코디북 -->
+        <section class="saved-outfits">
+            <h3>📚 나의 코디북</h3>
+            <div id="outfit-book" class="outfit-book-grid">
+                <!-- 저장된 코디들이 표시됩니다 -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        let selectedBaseItem = null;
+        let currentCategory = 'TOPS';
+
+        // 기본 아이템 로드
+        function loadBaseItems(category) {
+            currentCategory = category;
+            const grid = document.getElementById('base-items-grid');
+            const items = PRODUCTS.filter(p => p.category === category);
+
+            // 탭 활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            grid.innerHTML = items.map(item => `
+                <div class="style-item-card" onclick="selectBaseItem(${item.id})">
+                    <img src="${item.image}" alt="${item.name}">
+                    <h4>${item.name}</h4>
+                    <p class="brand">${item.brand || ''}</p>
+                    <p class="price">₩${item.price.toLocaleString()}</p>
+                </div>
+            `).join('');
+        }
+
+        // 기본 아이템 선택
+        function selectBaseItem(itemId) {
+            selectedBaseItem = PRODUCTS.find(p => p.id === itemId);
+
+            // 선택 표시
+            document.querySelectorAll('.style-item-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.style-item-card').classList.add('selected');
+
+            generateMatching();
+        }
+
+        // AI 매칭 생성
+        function generateMatching() {
+            if (!selectedBaseItem) return;
+
+            const placeholder = document.querySelector('.placeholder-message');
+            const matched = document.getElementById('matched-outfit');
+
+            // 로딩 표시
+            placeholder.innerHTML = `
+                <div class="loader-spinner"></div>
+                <p>AI가 최적의 코디를 찾는 중...</p>
+            `;
+
+            setTimeout(() => {
+                // 매칭 아이템 찾기
+                const matchedItem = findMatchingItem(selectedBaseItem);
+
+                // 결과 표시
+                document.getElementById('base-item-img').src = selectedBaseItem.image;
+                document.getElementById('matched-item-img').src = matchedItem.image;
+
+                // 코디 설명 생성
+                const explanation = generateOutfitExplanation(selectedBaseItem, matchedItem);
+                document.getElementById('outfit-explanation').textContent = explanation;
+
+                // 스타일 태그
+                const tags = getStyleTags(selectedBaseItem, matchedItem);
+                document.getElementById('outfit-tags').innerHTML = tags.map(tag =>
+                    `<span class="style-tag">#${tag}</span>`
+                ).join('');
+
+                placeholder.style.display = 'none';
+                matched.style.display = 'block';
+
+                // 추가 코디 제안
+                loadMoreOutfits();
+            }, 1500);
+        }
+
+        // 매칭 아이템 찾기 (AI 시뮬레이션)
+        function findMatchingItem(baseItem) {
+            let matchCategory;
+
+            // 카테고리별 매칭 로직
+            if (baseItem.category === 'TOPS') {
+                matchCategory = Math.random() > 0.5 ? 'PANTS' : 'OUTER';
+            } else if (baseItem.category === 'PANTS') {
+                matchCategory = Math.random() > 0.5 ? 'TOPS' : 'SHOES';
+            } else if (baseItem.category === 'OUTER') {
+                matchCategory = 'PANTS';
+            } else {
+                matchCategory = 'TOPS';
+            }
+
+            // 색상 매칭 고려
+            const candidates = PRODUCTS.filter(p => p.category === matchCategory);
+
+            // 색상 조화 점수 계산
+            const scored = candidates.map(item => ({
+                item,
+                score: calculateColorHarmony(baseItem.colors, item.colors)
+            }));
+
+            scored.sort((a, b) => b.score - a.score);
+            return scored[0].item;
+        }
+
+        // 색상 조화 점수 계산
+        function calculateColorHarmony(colors1, colors2) {
+            if (!colors1 || !colors2) return Math.random();
+
+            const complementary = {
+                '블랙': ['화이트', '그레이', '베이지'],
+                '화이트': ['블랙', '네이비', '그레이'],
+                '네이비': ['화이트', '베이지', '카키'],
+                '그레이': ['화이트', '블랙', '네이비'],
+                '베이지': ['브라운', '카키', '화이트']
+            };
+
+            let score = 0;
+            colors1.forEach(c1 => {
+                colors2.forEach(c2 => {
+                    if (complementary[c1]?.includes(c2)) score += 10;
+                    if (c1 === c2) score += 3; // 같은 색상도 약간의 점수
+                });
+            });
+
+            return score + Math.random() * 5;
+        }
+
+        // 코디 설명 생성
+        function generateOutfitExplanation(item1, item2) {
+            const explanations = [
+                `${item1.brand}의 ${item1.name}와 ${item2.brand}의 ${item2.name}의 조합은 트렌디하면서도 편안한 스타일을 연출합니다.`,
+                `클래식한 ${item1.name}에 ${item2.name}를 매치하면 세련된 도시적 감성을 표현할 수 있습니다.`,
+                `${item1.name}의 심플함을 ${item2.name}로 완성하는 미니멀 코디입니다.`,
+                `캐주얼한 ${item1.name}와 ${item2.name}의 만남으로 데일리룩 완성!`,
+                `${item1.name}의 편안함과 ${item2.name}의 스타일리시함이 조화를 이룹니다.`
+            ];
+
+            return explanations[Math.floor(Math.random() * explanations.length)];
+        }
+
+        // 스타일 태그 생성
+        function getStyleTags(item1, item2) {
+            const allTags = ['캐주얼', '미니멀', '모던', '클래식', '트렌디', '심플', '편안함', '세련됨', '도시적', '데일리'];
+            const shuffled = allTags.sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 3);
+        }
+
+        // 추가 코디 로드
+        function loadMoreOutfits() {
+            const moreOutfits = document.getElementById('more-outfits');
+            const alternatives = PRODUCTS
+                .filter(p => p.id !== selectedBaseItem.id && p.category !== selectedBaseItem.category)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+
+            moreOutfits.innerHTML = alternatives.map(item => `
+                <div class="mini-outfit-card" onclick="showAlternativeOutfit(${item.id})">
+                    <div class="mini-outfit-images">
+                        <img src="${selectedBaseItem.image}" alt="${selectedBaseItem.name}">
+                        <span class="mini-plus">+</span>
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <p>${selectedBaseItem.name} + ${item.name}</p>
+                    <p class="total-price">₩${(selectedBaseItem.price + item.price).toLocaleString()}</p>
+                </div>
+            `).join('');
+        }
+
+        // 대안 코디 표시
+        function showAlternativeOutfit(itemId) {
+            const newMatch = PRODUCTS.find(p => p.id === itemId);
+
+            document.getElementById('matched-item-img').src = newMatch.image;
+
+            const explanation = generateOutfitExplanation(selectedBaseItem, newMatch);
+            document.getElementById('outfit-explanation').textContent = explanation;
+
+            const tags = getStyleTags(selectedBaseItem, newMatch);
+            document.getElementById('outfit-tags').innerHTML = tags.map(tag =>
+                `<span class="style-tag">#${tag}</span>`
+            ).join('');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 다른 코디 보기
+        function refreshMatch() {
+            generateMatching();
+        }
+
+        // 전체 담기
+        function addOutfitToCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const matchedItemSrc = document.getElementById('matched-item-img').src;
+            const matchedItem = PRODUCTS.find(p => p.image === matchedItemSrc);
+
+            [selectedBaseItem, matchedItem].forEach(item => {
+                const existing = cart.find(c => c.id === item.id);
+                if (existing) {
+                    existing.qty += 1;
+                } else {
+                    cart.push({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image,
+                        qty: 1,
+                        size: 'M'
+                    });
+                }
+            });
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert('코디 전체가 장바구니에 추가되었습니다! 🛒');
+        }
+
+        // 코디 저장
+        function saveOutfit() {
+            const outfits = JSON.parse(localStorage.getItem('savedOutfits')) || [];
+            const matchedItemSrc = document.getElementById('matched-item-img').src;
+            const matchedItem = PRODUCTS.find(p => p.image === matchedItemSrc);
+
+            const outfit = {
+                id: Date.now(),
+                baseItem: selectedBaseItem,
+                matchedItem: matchedItem,
+                explanation: document.getElementById('outfit-explanation').textContent,
+                tags: Array.from(document.querySelectorAll('.style-tag')).map(tag => tag.textContent),
+                date: new Date().toLocaleDateString('ko-KR')
+            };
+
+            outfits.unshift(outfit);
+            localStorage.setItem('savedOutfits', JSON.stringify(outfits));
+
+            alert('코디북에 저장되었습니다! 📚');
+            loadOutfitBook();
+        }
+
+        // 코디북 로드
+        function loadOutfitBook() {
+            const outfits = JSON.parse(localStorage.getItem('savedOutfits')) || [];
+            const book = document.getElementById('outfit-book');
+
+            if (outfits.length === 0) {
+                book.innerHTML = '<p class="empty-message">저장된 코디가 없습니다.</p>';
+                return;
+            }
+
+            book.innerHTML = outfits.map(outfit => `
+                <div class="saved-outfit-card">
+                    <div class="saved-outfit-images">
+                        <img src="${outfit.baseItem.image}" alt="${outfit.baseItem.name}">
+                        <span class="saved-plus">+</span>
+                        <img src="${outfit.matchedItem.image}" alt="${outfit.matchedItem.name}">
+                    </div>
+                    <p class="saved-date">${outfit.date}</p>
+                    <div class="saved-tags">${outfit.tags.join(' ')}</div>
+                    <button class="btn-reuse" onclick="reuseOutfit(${outfit.id})">다시 보기</button>
+                </div>
+            `).join('');
+        }
+
+        // 저장된 코디 재사용
+        function reuseOutfit(id) {
+            const outfits = JSON.parse(localStorage.getItem('savedOutfits')) || [];
+            const outfit = outfits.find(o => o.id === id);
+            if (!outfit) return;
+
+            selectedBaseItem = outfit.baseItem;
+
+            document.getElementById('base-item-img').src = outfit.baseItem.image;
+            document.getElementById('matched-item-img').src = outfit.matchedItem.image;
+            document.getElementById('outfit-explanation').textContent = outfit.explanation;
+            document.getElementById('outfit-tags').innerHTML = outfit.tags.map(tag =>
+                `<span class="style-tag">${tag}</span>`
+            ).join('');
+
+            document.querySelector('.placeholder-message').style.display = 'none';
+            document.getElementById('matched-outfit').style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 테마
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            loadBaseItems('TOPS');
+            loadOutfitBook();
+        });
+    </script>
+</body>
+
+</html>

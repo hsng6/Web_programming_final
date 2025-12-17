@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖 - AI 핏 분석</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -22,7 +24,7 @@
             <a href="orders.html">주문내역</a>
             <a href="support.html">고객센터</a>
             <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
-            <a href="cart.html" class="cart-link">🛒 장바구니 <span id="cart-count">0</span></a>
+            <a href="cart.html" class="cart-link">🛍️ 장바구니</a>
             <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
         </nav>
     </header>
@@ -38,7 +40,13 @@
 
         <!-- 체형 입력 섹션 -->
         <section class="body-input-section" id="body-input-section">
-            <h3>📏 신체 정보 입력</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>📏 신체 정보 입력</h3>
+                <button type="button" class="btn-load-saved" onclick="loadSavedBodyInfo()"
+                    style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    📂 저장된 정보 불러오기
+                </button>
+            </div>
             <form id="body-measurement-form">
                 <div class="form-grid">
                     <div class="form-group">
@@ -101,35 +109,75 @@
                             <option value="curvy">풍만한 체형</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="fit-preference">선호하는 핏</label>
-                        <select id="fit-preference">
-                            <option value="">선택하세요</option>
-                            <option value="tight">타이트 핏</option>
-                            <option value="slim">슬림 핏</option>
-                            <option value="regular">레귤러 핏</option>
-                            <option value="relaxed">릴렉스 핏</option>
-                            <option value="oversized">오버사이즈 핏</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="concern">핏 고민사항</label>
-                        <select id="concern">
-                            <option value="">선택하세요</option>
-                            <option value="shoulder">어깨가 넓음</option>
-                            <option value="chest">가슴이 큼</option>
-                            <option value="belly">배가 나옴</option>
-                            <option value="hip">엉덩이가 큼</option>
-                            <option value="arm">팔이 굵음</option>
-                            <option value="leg">다리가 짧음</option>
-                            <option value="leg-thick">다리가 굵음</option>
-                        </select>
+                <div class="form-group full-width" style="grid-column: 1 / -1;">
+                    <label>선호하는 핏 (복수 선택 가능)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fit-preference" value="tight"> 타이트 핏
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fit-preference" value="slim"> 슬림 핏
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fit-preference" value="regular"> 레귤러 핏
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fit-preference" value="relaxed"> 릴렉스 핏
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fit-preference" value="oversized"> 오버사이즈 핏
+                        </label>
                     </div>
                 </div>
 
-                <button type="submit" class="ai-analyze-btn">
+                <div class="form-group full-width" style="grid-column: 1 / -1;">
+                    <label>핏 고민사항 (복수 선택 가능)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="shoulder"> 어깨가 넓음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="shoulder-narrow"> 어깨가 좁음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="chest"> 가슴이 큼
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="belly"> 배가 나옴
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="hip"> 엉덩이가 큼
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="arm"> 팔이 굵음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="arm-short"> 팔이 짧음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="leg"> 다리가 짧음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="leg-thick"> 다리가 굵음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="leg-thin"> 다리가 얇음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="neck-short"> 목이 짧음
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="torso-long"> 상체가 김
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="concern" value="torso-short"> 상체가 짧음
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="ai-analyze-btn" style="grid-column: 1 / -1;">
                     🤖 AI 핏 분석 시작
                 </button>
             </form>
@@ -138,7 +186,7 @@
         <!-- AI 분석 결과 섹션 -->
         <section class="ai-result-section" id="ai-result-section" style="display: none;">
             <h3>📊 AI 분석 결과</h3>
-            
+
             <!-- BMI & 체형 분석 -->
             <div class="analysis-card">
                 <h4>📈 체형 분석</h4>
@@ -390,7 +438,7 @@
                 const { bodyType, fitPreference, concern, gender } = data;
                 const topSize = this.recommendTopSize(data);
                 const bottomSize = this.recommendBottomSize(data);
-                
+
                 const recommended = [];
 
                 allProducts.forEach(product => {
@@ -423,8 +471,14 @@
         };
 
         // 폼 제출 처리
-        document.getElementById('body-measurement-form').addEventListener('submit', function(e) {
+        document.getElementById('body-measurement-form').addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // 체크박스에서 선택된 값들 수집
+            const fitPreferences = Array.from(document.querySelectorAll('input[name="fit-preference"]:checked'))
+                .map(cb => cb.value);
+            const concerns = Array.from(document.querySelectorAll('input[name="concern"]:checked'))
+                .map(cb => cb.value);
 
             const data = {
                 gender: document.getElementById('gender').value,
@@ -437,13 +491,60 @@
                 armLength: parseInt(document.getElementById('arm-length').value) || null,
                 legLength: parseInt(document.getElementById('leg-length').value) || null,
                 bodyType: document.getElementById('body-type').value,
-                fitPreference: document.getElementById('fit-preference').value,
-                concern: document.getElementById('concern').value
+                fitPreference: fitPreferences, // 배열로 저장
+                concern: concerns // 배열로 저장
             };
 
             // AI 분석 시작
             analyzeBody(data);
+
+            // 신체 정보 저장 (나중에 불러오기 위해)
+            localStorage.setItem('savedBodyInfo', JSON.stringify(data));
         });
+
+        // 저장된 신체 정보 불러오기
+        function loadSavedBodyInfo() {
+            const savedInfo = localStorage.getItem('savedBodyInfo');
+
+            if (!savedInfo) {
+                showToast('저장된 신체 정보가 없습니다.');
+                return;
+            }
+
+            const data = JSON.parse(savedInfo);
+
+            // 폼에 데이터 채우기
+            document.getElementById('gender').value = data.gender || '';
+            document.getElementById('height').value = data.height || '';
+            document.getElementById('weight').value = data.weight || '';
+            document.getElementById('chest').value = data.chest || '';
+            document.getElementById('waist').value = data.waist || '';
+            document.getElementById('hip').value = data.hip || '';
+            document.getElementById('shoulder').value = data.shoulder || '';
+            document.getElementById('arm-length').value = data.armLength || '';
+            document.getElementById('leg-length').value = data.legLength || '';
+            document.getElementById('body-type').value = data.bodyType || '';
+
+            // 체크박스 체크 해제 후 저장된 값 체크
+            document.querySelectorAll('input[name="fit-preference"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="concern"]').forEach(cb => cb.checked = false);
+
+            // 선호하는 핏 복원 (배열 또는 문자열 처리)
+            const fitPreferences = Array.isArray(data.fitPreference) ? data.fitPreference : (data.fitPreference ? [data.fitPreference] : []);
+            fitPreferences.forEach(value => {
+                const checkbox = document.querySelector(`input[name="fit-preference"][value="${value}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
+            // 핏 고민사항 복원 (배열 또는 문자열 처리)
+            const concerns = Array.isArray(data.concern) ? data.concern : (data.concern ? [data.concern] : []);
+            concerns.forEach(value => {
+                const checkbox = document.querySelector(`input[name="concern"][value="${value}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
+            showToast('저장된 신체 정보를 불러왔습니다! 📂');
+        }
 
         function analyzeBody(data) {
             // 로딩 표시
@@ -591,10 +692,30 @@
             document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
         }
 
+        // 카트 카운트 업데이트
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) {
+                if (totalItems > 0) {
+                    countElement.classList.add('has-items');
+                } else {
+                    countElement.classList.remove('has-items');
+                }
+            }
+        }
+
         // 페이지 로드
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadTheme();
             updateCartCount();
+
+            // 저장된 신체 정보 확인
+            const savedInfo = localStorage.getItem('savedBodyInfo');
+            if (savedInfo) {
+                showToast('💡 이전에 입력한 신체 정보가 있습니다. "저장된 정보 불러오기" 버튼을 클릭하세요!', 5000);
+            }
 
             // 저장된 분석이 있으면 불러오기 옵션 표시
             const savedAnalysis = localStorage.getItem('bodyAnalysis');
@@ -613,4 +734,5 @@
         });
     </script>
 </body>
+
 </html>

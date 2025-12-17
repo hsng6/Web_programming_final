@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - AI 가상 피팅룸</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- TensorFlow.js & PoseNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html">🤖 AI 핏</a>
+            <a href="virtual-fitting.html" class="highlight-link">👗 가상 피팅</a>
+            <a href="style-match.html" class="highlight-link">✨ 스타일 매칭</a>
+            <a href="recommendations.html">✨ 추천</a>
+            <a href="coupons.html">🎟️ 쿠폰</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html">❤️ 찜</a>
+            <a href="cart.html">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="virtual-fitting-container">
+        <h2>🎨 AI 가상 피팅룸</h2>
+        <p class="subtitle">사진을 업로드하면 AI가 체형을 인식하여 옷을 입혀드립니다!</p>
+
+        <div class="fitting-workspace">
+            <section class="upload-section">
+                <h3>📸 내 사진 업로드</h3>
+                <div class="upload-area">
+                    <input type="file" id="user-photo" accept="image/*" style="display: none;">
+                    <label for="user-photo" class="upload-label">
+                        <div class="upload-icon">📷</div>
+                        <p>클릭하여 사진 업로드</p>
+                        <small>정면 전신 사진 권장 (AI가 체형을 인식합니다)</small>
+                    </label>
+                    <div id="user-preview" class="photo-preview" style="display: none;">
+                        <img id="user-image" src="" alt="User Photo">
+                        <div id="pose-status" class="pose-status" style="display: none;"></div>
+                        <button class="btn-change-photo" onclick="document.getElementById('user-photo').click()">사진
+                            변경</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="product-selection">
+                <h3>👔 입어볼 상품 선택</h3>
+                <div class="products-carousel">
+                    <button class="carousel-btn prev" onclick="scrollCarousel(-1)">‹</button>
+                    <div id="fitting-products-list" class="carousel-items"></div>
+                    <button class="carousel-btn next" onclick="scrollCarousel(1)">›</button>
+                </div>
+            </section>
+
+            <section class="fitting-result">
+                <h3>✨ 가상 피팅 결과</h3>
+                <div class="result-display" id="result-display">
+                    <div class="placeholder-message">
+                        <p>🎭</p>
+                        <p>사진을 업로드하고 상품을 선택하면</p>
+                        <p>AI가 가상으로 옷을 입혀드립니다!</p>
+                    </div>
+                    <div id="fitted-result" style="display: none;">
+                        <div class="fitted-image-container">
+                            <img id="fitted-image" src="" alt="Fitted Result">
+                            <div class="product-overlay">
+                                <h4 id="fitted-product-name"></h4>
+                                <p id="fitted-product-price"></p>
+                            </div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-primary" onclick="addFittedToCart()">🛒 장바구니</button>
+                            <button class="btn-secondary" onclick="shareFitting()">📤 공유</button>
+                            <button class="btn-secondary" onclick="saveFitting()">💾 저장</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="fitting-history">
+            <h3>📋 나의 피팅 기록</h3>
+            <div id="history-list" class="history-grid"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        let selectedProduct = null;
+        let userPhoto = null;
+        let poseNetModel = null;
+        let bodyKeypoints = null;
+        let bodySegments = null;
+
+        // PoseNet 모델 로드
+        async function loadPoseNet() {
+            if (!poseNetModel && typeof posenet !== 'undefined') {
+                try {
+                    console.log('PoseNet 모델 로딩 중...');
+                    poseNetModel = await posenet.load({
+                        architecture: 'MobileNetV1',
+                        outputStride: 16,
+                        inputResolution: { width: 640, height: 480 },
+                        multiplier: 0.75
+                    });
+                    console.log('✅ PoseNet 로딩 완료');
+                    return poseNetModel;
+                } catch (error) {
+                    console.error('PoseNet 로딩 실패:', error);
+                    return null;
+                }
+            }
+            return poseNetModel;
+        }
+
+        // 체형 키포인트 감지
+        async function detectBodyPose(imageElement) {
+            try {
+                const model = await loadPoseNet();
+                if (!model) return null;
+
+                const pose = await model.estimateSinglePose(imageElement, { flipHorizontal: false });
+                return pose;
+            } catch (error) {
+                console.error('체형 인식 실패:', error);
+                return null;
+            }
+        }
+
+        // 신체 영역 분할
+        function segmentBody(keypoints) {
+            const parts = {};
+            keypoints.forEach(kp => { parts[kp.part] = kp.position; });
+
+            const torso = {
+                top: Math.min(parts.leftShoulder?.y || 0, parts.rightShoulder?.y || 0),
+                bottom: Math.max(parts.leftHip?.y || 0, parts.rightHip?.y || 0),
+                left: Math.min(parts.leftShoulder?.x || 0, parts.leftHip?.x || 0) - 50,
+                right: Math.max(parts.rightShoulder?.x || 0, parts.rightHip?.x || 0) + 50,
+                centerX: ((parts.leftShoulder?.x || 0) + (parts.rightShoulder?.x || 0)) / 2,
+                width: Math.abs((parts.rightShoulder?.x || 0) - (parts.leftShoulder?.x || 0))
+            };
+
+            const legs = {
+                top: Math.min(parts.leftHip?.y || 0, parts.rightHip?.y || 0),
+                bottom: Math.max(parts.leftAnkle?.y || 0, parts.rightAnkle?.y || 0),
+                left: Math.min(parts.leftHip?.x || 0, parts.leftAnkle?.x || 0) - 30,
+                right: Math.max(parts.rightHip?.x || 0, parts.rightAnkle?.x || 0) + 30,
+                centerX: ((parts.leftHip?.x || 0) + (parts.rightHip?.x || 0)) / 2,
+                width: Math.abs((parts.rightHip?.x || 0) - (parts.leftHip?.x || 0))
+            };
+
+            return { torso, legs, allParts: parts };
+        }
+
+        // 사진 업로드
+        document.getElementById('user-photo').addEventListener('change', async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function (event) {
+                userPhoto = event.target.result;
+                const userImage = document.getElementById('user-image');
+                userImage.src = userPhoto;
+                document.getElementById('user-preview').style.display = 'block';
+                document.querySelector('.upload-label').style.display = 'none';
+
+                const poseStatus = document.getElementById('pose-status');
+                poseStatus.style.display = 'block';
+                poseStatus.innerHTML = '<div class="pose-loading">🤖 AI가 체형을 분석중...</div>';
+
+                userImage.onload = async function () {
+                    const pose = await detectBodyPose(userImage);
+
+                    if (pose && pose.score > 0.3) {
+                        bodyKeypoints = pose.keypoints;
+                        bodySegments = segmentBody(bodyKeypoints);
+
+                        const confidence = Math.round(pose.score * 100);
+                        poseStatus.innerHTML = `
+                            <div class="pose-success">
+                                ✅ 체형 인식 완료! (정확도: ${confidence}%)
+                                <div class="body-measurements">
+                                    <small>어깨 너비: ${Math.round(bodySegments.torso.width)}px</small>
+                                    <small>상체: ${Math.round(bodySegments.torso.bottom - bodySegments.torso.top)}px</small>
+                                    <small>하체: ${Math.round(bodySegments.legs.bottom - bodySegments.legs.top)}px</small>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        poseStatus.innerHTML = '<div class="pose-error">⚠️ 체형 인식 실패. 기본 모드로 진행됩니다.</div>';
+                        bodyKeypoints = null;
+                        bodySegments = null;
+                    }
+
+                    if (selectedProduct) generateFitting();
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 상품 목록 로드
+        function loadFittingProducts() {
+            console.log('=== loadFittingProducts 시작 ===');
+
+            if (typeof PRODUCTS === 'undefined') {
+                console.error('❌ PRODUCTS 없음');
+                document.getElementById('fitting-products-list').innerHTML =
+                    '<p style="color:red;padding:20px;">상품을 불러올 수 없습니다</p>';
+                return;
+            }
+
+            console.log('✅ PRODUCTS:', PRODUCTS.length + '개');
+
+            const productsList = document.getElementById('fitting-products-list');
+            productsList.innerHTML = '';
+
+            PRODUCTS.forEach((product) => {
+                const card = document.createElement('div');
+                card.className = 'fitting-product-card';
+                card.onclick = () => selectProduct(product);
+                card.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}">
+                    <h4>${product.name}</h4>
+                    <p class="price">₩${product.price.toLocaleString()}</p>
+                `;
+                productsList.appendChild(card);
+            });
+
+            console.log('✅ 상품 로드 완료:', productsList.children.length + '개');
+        }
+
+        // 상품 선택
+        function selectProduct(product) {
+            selectedProduct = product;
+            document.querySelectorAll('.fitting-product-card').forEach(card => card.classList.remove('selected'));
+            event.target.closest('.fitting-product-card').classList.add('selected');
+            if (userPhoto) {
+                generateFitting();
+            } else {
+                alert('먼저 사진을 업로드해주세요!');
+            }
+        }
+
+        // 가상 피팅 생성
+        function generateFitting() {
+            const resultDisplay = document.getElementById('result-display');
+            const placeholder = resultDisplay.querySelector('.placeholder-message');
+            const fitted = document.getElementById('fitted-result');
+
+            placeholder.innerHTML = `
+                <div class="loader-spinner"></div>
+                <p>AI가 체형에 맞춰 옷을 입히는 중...</p>
+                <p>${bodySegments ? '🎯 정밀 매핑 모드' : '📐 기본 매핑 모드'}</p>
+            `;
+
+            setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const userImg = new Image();
+                userImg.crossOrigin = "anonymous";
+                userImg.onload = function () {
+                    canvas.width = userImg.width;
+                    canvas.height = userImg.height;
+                    ctx.drawImage(userImg, 0, 0);
+
+                    const productImg = new Image();
+                    productImg.crossOrigin = "anonymous";
+                    productImg.onload = function () {
+                        if (bodySegments) {
+                            applyPreciseFitting(ctx, productImg, canvas.width, canvas.height);
+                        } else {
+                            applyBasicFitting(ctx, productImg, canvas.width, canvas.height);
+                        }
+
+                        const fittedImageUrl = canvas.toDataURL('image/png', 1.0);
+                        document.getElementById('fitted-image').src = fittedImageUrl;
+                        document.getElementById('fitted-product-name').textContent = selectedProduct.name;
+                        document.getElementById('fitted-product-price').textContent = `₩${selectedProduct.price.toLocaleString()}`;
+
+                        placeholder.style.display = 'none';
+                        fitted.style.display = 'block';
+
+                        // 이미지 로드 완료 후 저장
+                        setTimeout(() => saveFittingHistory(fittedImageUrl), 100);
+                    };
+                    productImg.src = selectedProduct.image;
+                };
+                userImg.src = userPhoto;
+            }, 2000);
+        }
+
+        // 정밀 피팅
+        function applyPreciseFitting(ctx, productImg, canvasWidth, canvasHeight) {
+            const category = selectedProduct.category;
+
+            if (category === 'TOPS' || category === 'OUTER') {
+                const torso = bodySegments.torso;
+                const targetWidth = torso.width * 2.2;
+                const targetHeight = (torso.bottom - torso.top) * 1.1;
+                const x = torso.centerX - targetWidth / 2;
+                const y = torso.top - 20;
+
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.globalAlpha = 0.75;
+                ctx.drawImage(productImg, x, y, targetWidth, targetHeight);
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 0.9;
+                ctx.drawImage(productImg, x, y, targetWidth, targetHeight);
+
+            } else if (category === 'PANTS') {
+                const legs = bodySegments.legs;
+                const targetWidth = legs.width * 2.5;
+                const targetHeight = (legs.bottom - legs.top) * 1.05;
+                const x = legs.centerX - targetWidth / 2;
+                const y = legs.top - 10;
+
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.globalAlpha = 0.75;
+                ctx.drawImage(productImg, x, y, targetWidth, targetHeight);
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 0.9;
+                ctx.drawImage(productImg, x, y, targetWidth, targetHeight);
+
+            } else if (category === 'SHOES') {
+                const leftAnkle = bodySegments.allParts.leftAnkle;
+                const rightAnkle = bodySegments.allParts.rightAnkle;
+
+                if (leftAnkle && rightAnkle) {
+                    const footWidth = Math.abs(rightAnkle.x - leftAnkle.x) * 1.5;
+                    const footHeight = footWidth * 0.6;
+                    const centerX = (leftAnkle.x + rightAnkle.x) / 2;
+                    const y = Math.max(leftAnkle.y, rightAnkle.y) - footHeight * 0.3;
+                    ctx.globalAlpha = 0.85;
+                    ctx.drawImage(productImg, centerX - footWidth / 2, y, footWidth, footHeight);
+                }
+            } else {
+                applyBasicFitting(ctx, productImg, canvasWidth, canvasHeight);
+            }
+
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 기본 피팅
+        function applyBasicFitting(ctx, productImg, canvasWidth, canvasHeight) {
+            ctx.globalAlpha = 0.7;
+            const scale = 0.5;
+            const x = (canvasWidth - productImg.width * scale) / 2;
+            const y = canvasHeight * 0.3;
+            ctx.drawImage(productImg, x, y, productImg.width * scale, productImg.height * scale);
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 피팅 기록 저장
+        function saveFittingHistory(fittedImageUrl) {
+            const history = JSON.parse(localStorage.getItem('fittingHistory')) || [];
+
+            // 실제 캔버스에 입혀진 이미지 저장
+            const resultImage = fittedImageUrl || document.getElementById('fitted-image').src;
+
+            const fitting = {
+                id: Date.now(),
+                productId: selectedProduct.id,
+                productName: selectedProduct.name,
+                productImage: selectedProduct.image,
+                price: selectedProduct.price,
+                userPhoto: userPhoto,
+                result: resultImage, // 캔버스에 옷이 입혀진 실제 이미지
+                category: selectedProduct.category,
+                date: new Date().toLocaleDateString('ko-KR')
+            };
+
+            history.unshift(fitting);
+            if (history.length > 10) history.pop();
+            localStorage.setItem('fittingHistory', JSON.stringify(history));
+            loadFittingHistory();
+
+            console.log('✅ 피팅 기록 저장 완료 (실제 입혀진 이미지)');
+        }
+
+        // 피팅 기록 로드
+        function loadFittingHistory() {
+            const history = JSON.parse(localStorage.getItem('fittingHistory')) || [];
+            const historyList = document.getElementById('history-list');
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="empty-message">아직 피팅 기록이 없습니다.</p>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item" onclick="viewFittingHistory(${item.id})">
+                    <img src="${item.result}" alt="Fitting Result">
+                    <div class="history-info">
+                        <h5>${item.productName}</h5>
+                        <p>${item.date}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 기록 상세보기
+        function viewFittingHistory(id) {
+            const history = JSON.parse(localStorage.getItem('fittingHistory')) || [];
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            document.getElementById('fitted-image').src = item.result;
+            document.getElementById('fitted-product-name').textContent = item.productName;
+            document.getElementById('fitted-product-price').textContent = `₩${item.price.toLocaleString()}`;
+            document.querySelector('.placeholder-message').style.display = 'none';
+            document.getElementById('fitted-result').style.display = 'block';
+            selectedProduct = PRODUCTS.find(p => p.id === item.productId);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 장바구니 담기
+        function addFittedToCart() {
+            if (!selectedProduct) return;
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(item => item.id === selectedProduct.id);
+
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    id: selectedProduct.id,
+                    name: selectedProduct.name,
+                    price: selectedProduct.price,
+                    image: selectedProduct.image,
+                    qty: 1,
+                    size: 'M'
+                });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert('장바구니에 추가되었습니다! 🛒');
+        }
+
+        // 공유하기
+        function shareFitting() {
+            navigator.clipboard.writeText(window.location.href);
+            alert('링크가 복사되었습니다! 📤');
+        }
+
+        // 저장하기
+        function saveFitting() {
+            const link = document.createElement('a');
+            link.download = `fitting_${selectedProduct.name}_${Date.now()}.png`;
+            link.href = document.getElementById('fitted-image').src;
+            link.click();
+            alert('저장되었습니다! 💾');
+        }
+
+        // 캐러셀 스크롤
+        function scrollCarousel(direction) {
+            document.getElementById('fitting-products-list').scrollBy({
+                left: direction * 300,
+                behavior: 'smooth'
+            });
+        }
+
+        // 테마
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('=== 가상 피팅룸 초기화 ===');
+            loadTheme();
+            loadFittingProducts();
+            loadFittingHistory();
+        });
+    </script>
+</body>
+
+</html>

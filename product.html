@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>인숖 - 상품 상세</title>
+    <title>인숙 - 상품 상세</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://via.placeholder.com">
+    <link rel="dns-prefetch" href="https://via.placeholder.com">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -24,50 +28,160 @@
     </header>
     <main>
         <section id="product-detail">
-          <div class="product-gallery">
-            <img src="" alt="Product Image" id="main-image">
-          </div>
-  
-          <div class="product-info">
-            <h2 id="product-name">상품 이름</h2>
-            <p id="product-price">₩0</p>
-            <p id="product-category" style="color: #666; margin: 0.5rem 0;">카테고리</p>
-            <p id="product-description">상품 설명이 여기에 표시됩니다.</p>
-  
-            <!-- 사이즈 선택 -->
-            <div class="size-selection">
-              <label for="product-size"><strong>사이즈 선택:</strong></label>
-              <select id="product-size" required>
-                <option value="">사이즈를 선택하세요</option>
-              </select>
-              <a href="ai-fit.html" class="ai-fit-recommendation">
-                🤖 내 사이즈 찾기 (AI 추천)
-              </a>
+            <div class="product-gallery">
+                <img src="" alt="Product Image" id="main-image">
             </div>
 
-            <!-- 수량 선택 -->
-            <div class="quantity-selection">
-              <label for="product-quantity"><strong>수량:</strong></label>
-              <div class="quantity-controls">
-                <button type="button" class="qty-btn" onclick="decreaseQuantity()">-</button>
-                <input type="number" id="product-quantity" value="1" min="1" max="99" readonly>
-                <button type="button" class="qty-btn" onclick="increaseQuantity()">+</button>
-              </div>
-            </div>
+            <div class="product-info">
+                <h2 id="product-name">상품 이름</h2>
+                <p id="product-price">₩0</p>
+                <p id="product-category" style="color: #666; margin: 0.5rem 0;">카테고리</p>
+                <p id="product-description">상품 설명이 여기에 표시됩니다.</p>
 
-            <!-- 총 가격 -->
-            <div class="total-price-display">
-              <span>총 금액:</span>
-              <span id="total-price" class="total-price-value">₩0</span>
+                <!-- 색상 선택 -->
+                <div class="color-selection" id="color-selection-container" style="display: none;">
+                    <label><strong>색상 선택:</strong></label>
+                    <div id="color-options" class="color-options">
+                        <!-- 색상 옵션이 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+
+                <!-- 사이즈 선택 -->
+                <div class="size-selection">
+                    <label for="product-size"><strong>사이즈 선택:</strong></label>
+                    <select id="product-size" required>
+                        <option value="">사이즈를 선택하세요</option>
+                    </select>
+                    <a href="ai-fit.html" class="ai-fit-recommendation">
+                        🤖 내 사이즈 찾기 (AI 추천)
+                    </a>
+                    <div id="stock-info" style="margin-top: 10px; color: #666; font-size: 14px;"></div>
+                </div>
+
+                <!-- 수량 선택 -->
+                <div class="quantity-selection">
+                    <label for="product-quantity"><strong>수량:</strong></label>
+                    <div class="quantity-controls">
+                        <button type="button" class="qty-btn" onclick="decreaseQuantity()">-</button>
+                        <input type="number" id="product-quantity" value="1" min="1" max="99" readonly>
+                        <button type="button" class="qty-btn" onclick="increaseQuantity()">+</button>
+                    </div>
+                </div>
+
+                <!-- 총 가격 -->
+                <div class="total-price-display">
+                    <span>총 금액:</span>
+                    <span id="total-price" class="total-price-value">₩0</span>
+                </div>
+
+                <button id="add-to-cart-btn">장바구니에 추가</button>
             </div>
-  
-            <button id="add-to-cart-btn">장바구니에 추가</button>
-          </div>
         </section>
 
-        <!-- Reviews Section -->
-        <section id="reviews-section">
-            <h2>상품 리뷰</h2>
+        <!-- Product Details Tabs -->
+        <section id="product-details-tabs">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('detail')">상세정보</button>
+                <button class="tab-btn" onclick="switchTab('reviews')">리뷰</button>
+                <button class="tab-btn" onclick="switchTab('shipping')">배송/반품</button>
+                <button class="tab-btn" onclick="switchTab('qna')">Q&A</button>
+            </div>
+
+            <!-- 상세정보 탭 -->
+            <div id="tab-detail" class="tab-content active">
+                <div class="detail-section">
+                    <h3>📦 상품 상세</h3>
+                    <div id="product-detail-info">
+                        <p>이 제품은 고품질 소재로 제작되어 편안한 착용감을 제공합니다.</p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📏 사이즈 정보</h3>
+                    <table class="size-table" id="size-guide-table">
+                        <thead>
+                            <tr>
+                                <th>사이즈</th>
+                                <th>총장(cm)</th>
+                                <th>어깨(cm)</th>
+                                <th>가슴(cm)</th>
+                                <th>소매(cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="size-table-body">
+                            <!-- 사이즈 데이터가 동적으로 추가됩니다 -->
+                        </tbody>
+                    </table>
+                    <p style="color: #666; font-size: 0.9em; margin-top: 10px;">※ 측정 방법에 따라 1~3cm 오차가 있을 수 있습니다.</p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🧵 소재 및 관리</h3>
+                    <div id="material-care-info">
+                        <p><strong>소재:</strong> <span id="material-info">면 100%</span></p>
+                        <p><strong>세탁방법:</strong></p>
+                        <ul>
+                            <li>찬물 또는 미지근한 물로 세탁</li>
+                            <li>중성세제 사용</li>
+                            <li>삶거나 표백제 사용 금지</li>
+                            <li>건조기 사용 금지</li>
+                            <li>그늘에서 건조</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 리뷰 탭 -->
+            <div id="tab-reviews" class="tab-content">
+                <!-- 기존 리뷰 섹션이 여기로 이동됩니다 -->
+            </div>
+
+            <!-- 배송/반품 탭 -->
+            <div id="tab-shipping" class="tab-content">
+                <div class="detail-section">
+                    <h3>🚚 배송 안내</h3>
+                    <p><strong>배송비:</strong> 3,000원 (50,000원 이상 구매 시 무료)</p>
+                    <p><strong>배송기간:</strong> 주문 후 2-3일 소요 (주말/공휴일 제외)</p>
+                    <p><strong>배송지역:</strong> 전국 (제주/도서산간 지역 추가비용 발생)</p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>↩️ 반품/교환 안내</h3>
+                    <p><strong>반품/교환 가능 기간:</strong> 상품 수령 후 7일 이내</p>
+                    <p><strong>반품 불가 사유:</strong></p>
+                    <ul>
+                        <li>상품 택(tag) 제거 또는 라벨이 훼손된 경우</li>
+                        <li>착용 후 세탁한 경우</li>
+                        <li>고객님의 단순 변심으로 인한 경우 (왕복 배송비 고객 부담)</li>
+                        <li>상품 훼손 및 오염된 경우</li>
+                    </ul>
+                    <p><strong>반품 배송비:</strong> 편도 3,000원 / 왕복 6,000원</p>
+                </div>
+            </div>
+
+            <!-- Q&A 탭 -->
+            <div id="tab-qna" class="tab-content">
+                <div class="detail-section">
+                    <h3>💬 상품 문의</h3>
+                    <p>상품에 대해 궁금한 점이 있으신가요?</p>
+                    <button class="btn-primary" onclick="window.location.href='support.html'">문의하기</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Section (기존 위치에서 제거하고 탭 안으로 이동될 예정) -->
+        <section id="reviews-section" style="display: none;">
+            <div class="reviews-header">
+                <h2>상품 리뷰</h2>
+                <div class="review-filter-buttons">
+                    <button class="filter-btn active" onclick="filterReviews('all')">전체 리뷰</button>
+                    <button class="filter-btn" onclick="filterReviews('photo')">📷 포토 리뷰</button>
+                    <button class="filter-btn" onclick="filterReviews('high')">⭐ 높은 평점</button>
+                </div>
+            </div>
+            <div id="photo-reviews-highlight" class="photo-reviews-section">
+                <!-- Photo reviews will be highlighted here -->
+            </div>
             <div id="reviews-list">
                 <!-- Reviews will be loaded here -->
             </div>
@@ -90,16 +204,89 @@
                     <label for="review-text">리뷰 내용:</label>
                     <textarea id="review-text" rows="4" required></textarea>
 
-                    <button type="submit">리뷰 등록</button>
+                    <label for="review-images">📷 사진 첨부 (선택, 최대 3장):</label>
+                    <input type="file" id="review-images" accept="image/*" multiple>
+                    <div id="image-preview" class="image-preview-container"></div>
+                    <p class="image-info">💡 포토 리뷰 작성 시 더 많은 사용자에게 도움이 됩니다!</p>
+
+                    <button type="button" onclick="submitReview()">리뷰 등록</button>
                 </form>
             </div>
         </section>
-      </main>
+    </main>
     <footer>
         <p>&copy; 2025 인숖. All rights reserved.</p>
     </footer>
+
+    <!-- 토스트 알림 -->
+    <div id="toast" class="toast"></div>
+
     <script src="main.js"></script>
     <script>
+        // 색상 코드 매핑 함수
+        function getColorCode(colorName) {
+            const colorMap = {
+                '화이트': '#FFFFFF',
+                '아이보리': '#FFFFF0',
+                '블랙': '#000000',
+                '네이비': '#000080',
+                '그레이': '#808080',
+                '베이지': '#F5F5DC',
+                '블루': '#0000FF',
+                '핑크': '#FFC0CB',
+                '카키': '#F0E68C',
+                '브라운': '#8B4513',
+                '라이트블루': '#ADD8E6',
+                '카멜': '#C19A6B'
+            };
+            return colorMap[colorName] || '#CCCCCC';
+        }
+
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭 버튼과 컨텐츠 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // 리뷰 탭 선택 시 리뷰 섹션 이동
+            if (tabName === 'reviews') {
+                const reviewsSection = document.getElementById('reviews-section');
+                const tabReviews = document.getElementById('tab-reviews');
+                if (reviewsSection && tabReviews) {
+                    tabReviews.innerHTML = reviewsSection.innerHTML;
+                    reviewsSection.style.display = 'none';
+                }
+            }
+        }
+
+        // 페이지 로드 시 리뷰 섹션을 탭 안으로 이동
+        document.addEventListener('DOMContentLoaded', function () {
+            const reviewsSection = document.getElementById('reviews-section');
+            const tabReviews = document.getElementById('tab-reviews');
+            if (reviewsSection && tabReviews) {
+                tabReviews.innerHTML = reviewsSection.innerHTML;
+                reviewsSection.style.display = 'none';
+            }
+        });
+
+        // 카트 카운트 업데이트
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.qty) || parseInt(item.quantity) || 0), 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) {
+                if (totalItems > 0) {
+                    countElement.classList.add('has-items');
+                } else {
+                    countElement.classList.remove('has-items');
+                }
+            }
+        }
+
         // Get product ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const productId = parseInt(urlParams.get('id'));
@@ -141,6 +328,94 @@
             }
         }
 
+        // 사이즈 옵션 로드 함수 (색상 변경 시 재호출)
+        function loadSizeOptions() {
+            if (!currentProduct) return;
+
+            const sizeSelect = document.getElementById('product-size');
+            const stock = window.getProductStock ? window.getProductStock(currentProduct.id) : currentProduct.stock;
+
+            // 선택된 색상 가져오기
+            const selectedColorBtn = document.querySelector('.color-option-btn.selected');
+            const selectedColor = selectedColorBtn ? selectedColorBtn.getAttribute('data-color') : null;
+
+            let sizes = [];
+            let colorStock = stock;
+            let isColorBasedStock = false;
+
+            // 재고 구조 확인
+            const stockKeys = Object.keys(stock);
+            if (stockKeys.length > 0) {
+                const firstKey = stockKeys[0];
+                const firstValue = stock[firstKey];
+
+                if (typeof firstValue === 'object' && firstValue !== null && !Array.isArray(firstValue)) {
+                    isColorBasedStock = true;
+                }
+            }
+
+            // 색상별 재고 구조 확인
+            if (selectedColor && stock[selectedColor]) {
+                // 선택된 색상의 재고
+                colorStock = stock[selectedColor];
+                sizes = Object.keys(colorStock);
+            } else if (selectedColor) {
+                // 색상은 선택했지만 재고가 없는 경우
+                sizes = [];
+            } else {
+                if (isColorBasedStock) {
+                    // 색상별-사이즈별 구조 - 모든 사이즈 수집
+                    const allSizesSet = new Set();
+                    Object.values(stock).forEach(colorStockData => {
+                        Object.keys(colorStockData).forEach(size => allSizesSet.add(size));
+                    });
+                    sizes = Array.from(allSizesSet);
+                } else {
+                    // 기존 사이즈별 구조
+                    sizes = stockKeys;
+                }
+            }
+
+            sizeSelect.innerHTML = '<option value="">사이즈를 선택하세요</option>';
+            sizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+
+                let totalStockQty = 0;
+
+                // 재고 계산
+                if (selectedColor && stock[selectedColor]) {
+                    // 특정 색상 선택된 경우
+                    totalStockQty = stock[selectedColor][size] || 0;
+                } else if (isColorBasedStock) {
+                    // 색상별 구조 - 모든 색상의 해당 사이즈 재고 합산
+                    Object.values(stock).forEach(colorStockData => {
+                        if (colorStockData[size] !== undefined) {
+                            totalStockQty += colorStockData[size];
+                        }
+                    });
+                } else {
+                    // 기존 구조
+                    totalStockQty = stock[size] || 0;
+                }
+
+                if (totalStockQty === 0) {
+                    option.textContent = `${size} (품절)`;
+                    option.disabled = true;
+                    option.style.color = '#999';
+                } else if (totalStockQty < 5) {
+                    option.textContent = `${size} (재고: ${totalStockQty}개)`;
+                } else {
+                    option.textContent = size;
+                }
+
+                sizeSelect.appendChild(option);
+            });
+
+            // 재고 정보 초기화
+            document.getElementById('stock-info').innerHTML = '';
+        }
+
         // Load product details
         function loadProductDetails() {
             const product = PRODUCTS.find(p => p.id === productId);
@@ -158,16 +433,86 @@
             document.getElementById('product-category').textContent = `카테고리: ${product.category}`;
             document.getElementById('product-description').textContent = `${product.name}의 상세 설명입니다.`;
 
-            // 사이즈 옵션 추가
+            // 색상 옵션 추가
+            if (product.colors && product.colors.length > 0) {
+                const colorContainer = document.getElementById('color-selection-container');
+                const colorOptions = document.getElementById('color-options');
+                colorContainer.style.display = 'block';
+
+                colorOptions.innerHTML = '';
+                product.colors.forEach((color, index) => {
+                    const colorBtn = document.createElement('button');
+                    colorBtn.className = 'color-option-btn';
+                    if (index === 0) colorBtn.classList.add('selected');
+                    colorBtn.setAttribute('data-color', color);
+                    colorBtn.innerHTML = `
+                        <span class="color-preview" style="background-color: ${getColorCode(color)};"></span>
+                        <span class="color-name">${color}</span>
+                    `;
+                    colorBtn.onclick = function () {
+                        document.querySelectorAll('.color-option-btn').forEach(btn => btn.classList.remove('selected'));
+                        this.classList.add('selected');
+                        // 색상 변경 시 사이즈 옵션 다시 로드
+                        loadSizeOptions();
+                    };
+                    colorOptions.appendChild(colorBtn);
+                });
+
+                // 색상 버튼이 모두 추가된 후 사이즈 옵션 로드
+                setTimeout(() => loadSizeOptions(), 10);
+            } else {
+                // 색상이 없는 경우에도 사이즈 옵션 로드
+                loadSizeOptions();
+            }
+
+            // 사이즈 선택 시 재고 정보 표시
             const sizeSelect = document.getElementById('product-size');
-            const sizes = SIZE_OPTIONS[product.category] || ['FREE'];
-            
-            sizeSelect.innerHTML = '<option value="">사이즈를 선택하세요</option>';
-            sizes.forEach(size => {
-                const option = document.createElement('option');
-                option.value = size;
-                option.textContent = size;
-                sizeSelect.appendChild(option);
+            sizeSelect.addEventListener('change', function () {
+                const selectedSize = this.value;
+                const stockInfo = document.getElementById('stock-info');
+                const stock = window.getProductStock ? window.getProductStock(product.id) : product.stock;
+
+                // 선택된 색상 가져오기
+                const selectedColorBtn = document.querySelector('.color-option-btn.selected');
+                const selectedColor = selectedColorBtn ? selectedColorBtn.getAttribute('data-color') : null;
+
+                if (selectedSize) {
+                    let stockQty = 0;
+
+                    // 재고 구조 확인
+                    const firstKey = Object.keys(stock)[0];
+                    const isColorBasedStock = firstKey && typeof stock[firstKey] === 'object' && !Array.isArray(stock[firstKey]);
+
+                    // 색상별 재고 확인
+                    if (selectedColor && stock[selectedColor]) {
+                        stockQty = stock[selectedColor][selectedSize] || 0;
+                    } else if (isColorBasedStock) {
+                        // 모든 색상의 해당 사이즈 재고 합산
+                        Object.values(stock).forEach(colorStockData => {
+                            if (colorStockData[selectedSize] !== undefined) {
+                                stockQty += colorStockData[selectedSize];
+                            }
+                        });
+                    } else {
+                        stockQty = stock[selectedSize] || 0;
+                    }
+
+                    if (stockQty === 0) {
+                        stockInfo.innerHTML = '<span style="color: red;">❌ 품절된 상품입니다.</span>';
+                        document.getElementById('add-to-cart-btn').disabled = true;
+                    } else if (stockQty < 5) {
+                        stockInfo.innerHTML = `<span style="color: orange;">⚠️ 남은 재고: ${stockQty}개</span>`;
+                        document.getElementById('add-to-cart-btn').disabled = false;
+                        document.getElementById('product-quantity').max = stockQty;
+                    } else {
+                        stockInfo.innerHTML = '<span style="color: green;">✅ 구매 가능</span>';
+                        document.getElementById('add-to-cart-btn').disabled = false;
+                        document.getElementById('product-quantity').max = Math.min(99, stockQty);
+                    }
+                } else {
+                    stockInfo.innerHTML = '';
+                    document.getElementById('add-to-cart-btn').disabled = false;
+                }
             });
 
             // 사이즈 변경 시 AI 추천 표시
@@ -186,11 +531,13 @@
                     recommendedSize = analysis.shoeSize?.size + '' || '';
                 }
 
-                if (recommendedSize && sizes.includes(recommendedSize)) {
-                    // 추천 사이즈 하이라이트
+                if (recommendedSize) {
+                    // 추천 사이즈 표시
                     const fitRecommendation = document.querySelector('.ai-fit-recommendation');
-                    fitRecommendation.innerHTML = `🤖 AI 추천 사이즈: <strong>${recommendedSize}</strong>`;
-                    fitRecommendation.style.color = '#667eea';
+                    if (fitRecommendation) {
+                        fitRecommendation.innerHTML = `🤖 AI 추천 사이즈: <strong>${recommendedSize}</strong>`;
+                        fitRecommendation.style.color = '#667eea';
+                    }
                 }
             }
 
@@ -198,9 +545,20 @@
             updateTotalPrice();
 
             // Add to cart button
-            document.getElementById('add-to-cart-btn').addEventListener('click', function() {
+            document.getElementById('add-to-cart-btn').addEventListener('click', function () {
+                // 로그인 체크
+                if (!window.isLoggedIn || !window.isLoggedIn()) {
+                    alert('장바구니는 로그인이 필요합니다.');
+                    window.location.href = 'login.html?return=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    return;
+                }
+
                 const size = document.getElementById('product-size').value;
                 const quantity = parseInt(document.getElementById('product-quantity').value);
+
+                // 선택된 색상 가져오기
+                const selectedColorBtn = document.querySelector('.color-option-btn.selected');
+                const selectedColor = selectedColorBtn ? selectedColorBtn.getAttribute('data-color') : null;
 
                 if (!size) {
                     alert('사이즈를 선택해주세요!');
@@ -212,17 +570,23 @@
                     return;
                 }
 
-                addToCartWithOptions(currentProduct, size, quantity);
+                addToCartWithOptions(currentProduct, size, quantity, selectedColor);
             });
         }
 
         // 옵션 포함 장바구니 추가
-        function addToCartWithOptions(product, size, quantity) {
+        function addToCartWithOptions(product, size, quantity, color) {
+            // 재고 확인 (색상 포함)
+            if (window.checkStock && !window.checkStock(product.id, size, quantity, color)) {
+                alert('선택한 색상/사이즈의 재고가 부족합니다.');
+                return;
+            }
+
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
-            
-            // 같은 상품, 같은 사이즈가 이미 있는지 확인
-            const existingItemIndex = cart.findIndex(item => 
-                item.id === product.id && item.size === size
+
+            // 같은 상품, 같은 사이즈, 같은 색상이 이미 있는지 확인
+            const existingItemIndex = cart.findIndex(item =>
+                item.id === product.id && item.size === size && item.color === color
             );
 
             if (existingItemIndex > -1) {
@@ -237,15 +601,17 @@
                     image: product.image,
                     category: product.category,
                     size: size,
+                    color: color,
                     quantity: quantity
                 });
             }
 
             localStorage.setItem("cart", JSON.stringify(cart));
-            
-            showToast(`${product.name} (사이즈: ${size}, 수량: ${quantity}개)가 장바구니에 추가되었습니다! 🛒`);
+
+            const colorText = color ? `, 색상: ${color}` : '';
+            showToast(`${product.name} (사이즈: ${size}${colorText}, 수량: ${quantity}개)가 장바구니에 추가되었습니다! 🛒`);
             updateCartCount();
-            
+
             // 장바구니로 이동할지 묻기
             setTimeout(() => {
                 if (confirm('장바구니로 이동하시겠습니까?')) {
@@ -254,35 +620,155 @@
             }, 500);
         }
 
+        // 이미지 미리보기 및 파일 관리
+        let selectedImages = [];
+
+        document.getElementById('review-images')?.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files).slice(0, 3); // 최대 3개
+            const previewContainer = document.getElementById('image-preview');
+            previewContainer.innerHTML = '';
+            selectedImages = [];
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    selectedImages.push(event.target.result);
+
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.className = 'preview-image-wrapper';
+                    imgWrapper.innerHTML = `
+                        <img src="${event.target.result}" alt="Preview ${index + 1}">
+                        <button type="button" class="remove-image-btn" onclick="removeImage(${index})">&times;</button>
+                    `;
+                    previewContainer.appendChild(imgWrapper);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            const fileInput = document.getElementById('review-images');
+            fileInput.value = '';
+
+            const previewContainer = document.getElementById('image-preview');
+            previewContainer.innerHTML = '';
+            selectedImages.forEach((imgSrc, idx) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'preview-image-wrapper';
+                imgWrapper.innerHTML = `
+                    <img src="${imgSrc}" alt="Preview ${idx + 1}">
+                    <button type="button" class="remove-image-btn" onclick="removeImage(${idx})">&times;</button>
+                `;
+                previewContainer.appendChild(imgWrapper);
+            });
+        }
+
         // Load reviews for this product
-        function loadReviews() {
-            const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`)) || [];
+        function loadReviews(filter = 'all') {
+            const allReviews = JSON.parse(localStorage.getItem(`reviews_${productId}`)) || [];
+            let reviews = [...allReviews];
+
+            // 필터 적용
+            if (filter === 'photo') {
+                reviews = reviews.filter(r => r.images && r.images.length > 0);
+            } else if (filter === 'high') {
+                reviews = reviews.filter(r => r.rating >= 4);
+            }
+
             const reviewsList = document.getElementById('reviews-list');
-            
+            const photoHighlight = document.getElementById('photo-reviews-highlight');
+
+            // 포토 리뷰 하이라이트 섹션
+            const photoReviews = allReviews.filter(r => r.images && r.images.length > 0).slice(0, 3);
+            if (photoReviews.length > 0 && filter === 'all') {
+                photoHighlight.innerHTML = `
+                    <h3>📸 포토 리뷰</h3>
+                    <div class="photo-reviews-grid">
+                        ${photoReviews.map((review, idx) => `
+                            <div class="photo-review-card" onclick="scrollToReview('review-${allReviews.indexOf(review)}')">
+                                <img src="${review.images[0]}" alt="Photo review">
+                                <div class="photo-review-overlay">
+                                    <span class="review-rating">${'⭐'.repeat(review.rating)}</span>
+                                    <p class="review-author">${review.name}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                photoHighlight.style.display = 'block';
+            } else {
+                photoHighlight.style.display = 'none';
+            }
+
             reviewsList.innerHTML = "";
-            
+
             if (reviews.length === 0) {
                 reviewsList.innerHTML = "<p>아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>";
                 return;
             }
 
             reviews.forEach((review, index) => {
+                const actualIndex = allReviews.indexOf(review);
                 const reviewDiv = document.createElement('div');
                 reviewDiv.className = 'review-item';
+                reviewDiv.id = `review-${actualIndex}`;
                 const stars = '⭐'.repeat(review.rating);
+
+                const imagesHtml = review.images && review.images.length > 0
+                    ? `<div class="review-images">
+                        ${review.images.map(img => `
+                            <img src="${img}" alt="Review image" onclick="openImageModal('${img}')">
+                        `).join('')}
+                       </div>`
+                    : '';
+
                 reviewDiv.innerHTML = `
                     <div class="review-header">
-                        <h4>${review.name} <span class="review-rating">${stars}</span></h4>
+                        <h4>${review.name} <span class="review-rating">${stars}</span>
+                        ${review.images && review.images.length > 0 ? '<span class="photo-badge">📸 포토리뷰</span>' : ''}
+                        </h4>
                         <div class="review-actions">
-                            <button class="edit-review-btn" onclick="editReview(${index})">수정</button>
-                            <button class="delete-review-btn" onclick="deleteReview(${index})">삭제</button>
+                            <button class="edit-review-btn" onclick="editReview(${actualIndex})">수정</button>
+                            <button class="delete-review-btn" onclick="deleteReview(${actualIndex})">삭제</button>
                         </div>
                     </div>
                     <p class="review-date">${review.date}</p>
+                    ${imagesHtml}
                     <p class="review-text">${review.text}</p>
                 `;
                 reviewsList.appendChild(reviewDiv);
             });
+        }
+
+        function filterReviews(type) {
+            // 버튼 활성화 상태 변경
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadReviews(type);
+        }
+
+        function scrollToReview(reviewId) {
+            document.getElementById(reviewId).scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById(reviewId).classList.add('highlight-review');
+            setTimeout(() => {
+                document.getElementById(reviewId).classList.remove('highlight-review');
+            }, 2000);
+        }
+
+        function openImageModal(imgSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'image-modal';
+            modal.innerHTML = `
+                <div class="image-modal-content">
+                    <span class="close-modal" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <img src="${imgSrc}" alt="Full size image">
+                </div>
+            `;
+            modal.onclick = function (e) {
+                if (e.target === modal) modal.remove();
+            };
+            document.body.appendChild(modal);
         }
 
         // Delete review
@@ -290,7 +776,7 @@
             if (!confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
                 return;
             }
-            
+
             const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`)) || [];
             reviews.splice(index, 1);
             localStorage.setItem(`reviews_${productId}`, JSON.stringify(reviews));
@@ -302,64 +788,96 @@
         function editReview(index) {
             const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`)) || [];
             const review = reviews[index];
-            
+
             // Fill form with existing review data
             document.getElementById('reviewer-name').value = review.name;
             document.getElementById('review-rating').value = review.rating;
             document.getElementById('review-text').value = review.text;
-            
+
+            // 기존 이미지 표시
+            if (review.images && review.images.length > 0) {
+                selectedImages = [...review.images];
+                const previewContainer = document.getElementById('image-preview');
+                previewContainer.innerHTML = '';
+                review.images.forEach((imgSrc, idx) => {
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.className = 'preview-image-wrapper';
+                    imgWrapper.innerHTML = `
+                        <img src="${imgSrc}" alt="Preview ${idx + 1}">
+                        <button type="button" class="remove-image-btn" onclick="removeImage(${idx})">&times;</button>
+                    `;
+                    previewContainer.appendChild(imgWrapper);
+                });
+            }
+
             // Change form to edit mode
             const submitBtn = document.querySelector('#review-form button[type="submit"]');
             submitBtn.textContent = '리뷰 수정';
             submitBtn.dataset.editIndex = index;
-            
+
             // Scroll to form
             document.getElementById('review-form-container').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Handle review form submission
-        document.getElementById('review-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        // 리뷰 제출 함수
+        function submitReview() {
+            if (!productId || isNaN(productId)) {
+                alert('상품 정보가 올바르지 않습니다. 페이지를 새로고침해주세요.');
+                return;
+            }
+
             const name = document.getElementById('reviewer-name').value;
             const rating = parseInt(document.getElementById('review-rating').value);
             const text = document.getElementById('review-text').value;
-            const submitBtn = this.querySelector('button[type="submit"]');
+            const submitBtn = document.querySelector('#review-form button');
             const editIndex = submitBtn.dataset.editIndex;
-            
+
+            if (!name || !text) {
+                alert('이름과 리뷰 내용을 입력해주세요.');
+                return;
+            }
+
             const reviews = JSON.parse(localStorage.getItem(`reviews_${productId}`)) || [];
-            
+
+            const reviewData = {
+                name: name,
+                rating: rating,
+                text: text,
+                images: selectedImages.length > 0 ? selectedImages : undefined,
+                date: editIndex !== undefined ? reviews[editIndex].date : new Date().toLocaleDateString('ko-KR')
+            };
+
             if (editIndex !== undefined) {
                 // Update existing review
-                reviews[editIndex] = {
-                    name: name,
-                    rating: rating,
-                    text: text,
-                    date: reviews[editIndex].date // Keep original date
-                };
+                reviews[editIndex] = reviewData;
                 alert('리뷰가 수정되었습니다!');
-                
+
                 // Reset form to add mode
                 submitBtn.textContent = '리뷰 등록';
                 delete submitBtn.dataset.editIndex;
             } else {
                 // Add new review
-                reviews.push({
-                    name: name,
-                    rating: rating,
-                    text: text,
-                    date: new Date().toLocaleDateString('ko-KR')
-                });
-                alert('리뷰가 등록되었습니다!');
+                reviews.push(reviewData);
+                alert('리뷰가 등록되었습니다!' + (selectedImages.length > 0 ? ' 📸 포토리뷰 감사합니다!' : ''));
             }
-            
+
             localStorage.setItem(`reviews_${productId}`, JSON.stringify(reviews));
-            
+
             // Clear form
             document.getElementById('review-form').reset();
-            
+            document.getElementById('image-preview').innerHTML = '';
+            selectedImages = [];
+
             // Reload reviews
             loadReviews();
+        }
+
+        // Handle review form submission
+        document.getElementById('review-form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            submitReview();
+            return false;
         });
 
         // Load theme on page load
@@ -379,11 +897,50 @@
         }
 
         // Load on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadTheme();
             loadProductDetails();
             loadReviews();
         });
     </script>
+    <script src="performance.js"></script>
+    <script>
+        // 이미지 압축 적용
+        document.addEventListener('DOMContentLoaded', () => {
+            const imageInput = document.getElementById('review-images');
+            if (imageInput) {
+                imageInput.addEventListener('change', async (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 3) {
+                        alert('이미지는 최대 3개까지 업로드 가능합니다.');
+                        return;
+                    }
+
+                    // 이미지 압축
+                    const compressor = new ImageCompressor();
+                    const compressed = [];
+
+                    for (const file of files) {
+                        try {
+                            const compressedImage = await compressor.compress(file);
+                            compressed.push(compressedImage);
+                        } catch (error) {
+                            console.error('이미지 압축 실패:', error);
+                        }
+                    }
+
+                    // 압축된 이미지로 selectedImages 교체
+                    if (window.selectedImages) {
+                        window.selectedImages = compressed;
+                        // 미리보기 업데이트
+                        if (window.displayImagePreviews) {
+                            window.displayImagePreviews();
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>

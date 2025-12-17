@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>인숖 - 결제</title>
+  <title>인숙 - 결제</title>
   <link rel="stylesheet" href="style.css">
+  <!-- 토스페이먼츠 SDK -->
+  <script src="https://js.tosspayments.com/v1/payment-widget"></script>
 </head>
+
 <body>
   <header>
     <a href="index.html" class="logo">
       <h1>인숖</h1>
     </a>
-        <nav>
-            <a href="index.html">홈</a>
-            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
-            <a href="mypage.html">마이페이지</a>
-            <a href="orders.html">주문내역</a>
-            <a href="support.html">고객센터</a>
-            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
-            <a href="cart.html" class="cart-link">🛒 장바구니</a>
-            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
-        </nav>
-    </header>  <main>
+    <nav>
+      <a href="index.html">홈</a>
+      <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+      <a href="mypage.html">마이페이지</a>
+      <a href="orders.html">주문내역</a>
+      <a href="support.html">고객센터</a>
+      <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+      <a href="cart.html" class="cart-link">🛒 장바구니</a>
+      <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </nav>
+  </header>
+  <main>
     <section id="payment">
       <h2>결제 정보</h2>
-      
+
       <!-- Order Summary -->
       <div class="order-summary">
         <h3>주문 상품</h3>
@@ -51,27 +56,52 @@
 
       <!-- Coupon Section -->
       <div class="coupon-section">
-        <h3>🎟️ 쿠폰 / 할인코드</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>🎟️ 쿠폰 / 할인코드</h3>
+          <a href="coupons.html" class="btn-view-coupons">내 쿠폰함 보기 →</a>
+        </div>
+        <div id="user-coupons-list" class="user-coupons-list">
+          <!-- Available coupons will be loaded here -->
+        </div>
         <div class="coupon-input-group">
           <input type="text" id="coupon-code" placeholder="쿠폰 코드를 입력하세요">
           <button type="button" onclick="applyCoupon()">적용</button>
         </div>
-        <p class="coupon-hint">💡 사용 가능한 쿠폰: WELCOME10 (10% 할인), SAVE5000 (5,000원 할인), FREESHIP (무료배송)</p>
       </div>
 
       <form id="payment-form">
-        <h3>결제 수단</h3>
-        <label for="card-number">카드 번호:</label>
-        <input type="text" id="card-number" required>
+        <h3>결제 수단 선택</h3>
+        <div class="payment-methods">
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="카드" checked>
+            <span>💳 신용/체크카드</span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="계좌이체">
+            <span>🏦 계좌이체</span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="가상계좌">
+            <span>💵 가상계좌</span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="토스페이">
+            <span>🐳 토스페이</span>
+          </label>
+        </div>
 
-        <label for="expiry-date">유효 기간:</label>
-        <input type="text" id="expiry-date" placeholder="MM/YY" required>
+        <h3>배송 정보</h3>
+        <label for="recipient-name">받는 사람:</label>
+        <input type="text" id="recipient-name" required>
 
-        <label for="cvv">CVV:</label>
-        <input type="text" id="cvv" required>
+        <label for="phone">연락처:</label>
+        <input type="tel" id="phone" placeholder="010-0000-0000" required>
 
-        <label for="cardholder-name">카드 소유자 이름:</label>
-        <input type="text" id="cardholder-name" required>
+        <label for="address">배송지 주소:</label>
+        <input type="text" id="address" placeholder="주소를 입력해주세요" required>
+
+        <label for="delivery-message">배송 메모 (선택):</label>
+        <input type="text" id="delivery-message" placeholder="배송 시 요청사항">
 
         <button type="submit">결제하기</button>
       </form>
@@ -81,6 +111,8 @@
   <footer>
     <p>&copy; 2025 인숖. All rights reserved.</p>
   </footer>
+
+  <script src="main.js"></script>
   <script>
     let appliedCoupon = null;
     let discountAmount = 0;
@@ -89,18 +121,35 @@
     function loadOrderSummary() {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       const orderItems = document.getElementById('order-items');
-      
-      orderItems.innerHTML = cart.map(item => {
+
+      // 가격 정보가 없는 상품들 보정
+      const fixedCart = cart.map(item => {
+        if (!item.price || item.price === 0) {
+          const product = PRODUCTS.find(p => p.id === item.id);
+          if (product) {
+            return { ...item, price: product.price, image: product.image || item.image };
+          }
+        }
+        return item;
+      });
+
+      // 수정된 장바구니 저장
+      localStorage.setItem('cart', JSON.stringify(fixedCart));
+
+      orderItems.innerHTML = fixedCart.map(item => {
         const quantity = item.quantity || item.qty || 1;
+        const price = item.price || 0;
+        const colorInfo = item.color ? ` [${item.color}]` : '';
         const sizeInfo = item.size ? ` (${item.size})` : '';
+
         return `
           <div class="order-item-row">
-            <span>${item.name}${sizeInfo} × ${quantity}</span>
-            <span>₩${(item.price * quantity).toLocaleString()}</span>
+            <span>${item.name}${colorInfo}${sizeInfo} × ${quantity}</span>
+            <span>₩${(price * quantity).toLocaleString()}</span>
           </div>
         `;
       }).join('');
-      
+
       calculateTotal();
     }
 
@@ -108,100 +157,245 @@
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       const subtotal = cart.reduce((sum, item) => {
         const quantity = item.quantity || item.qty || 1;
-        return sum + (item.price * quantity);
+        const price = item.price || 0;
+        return sum + (price * quantity);
       }, 0);
       const shipping = freeShipping ? 0 : 3000;
       const finalTotal = subtotal + shipping - discountAmount;
-      
+
       document.getElementById('subtotal').textContent = `₩${subtotal.toLocaleString()}`;
       document.getElementById('final-total').textContent = `₩${finalTotal.toLocaleString()}`;
+    }
+
+    function loadUserCoupons() {
+      const coupons = JSON.parse(localStorage.getItem('userCoupons')) || [];
+      const today = new Date();
+      const availableCoupons = coupons.filter(c => !c.used && new Date(c.expiryDate) >= today);
+
+      const container = document.getElementById('user-coupons-list');
+      container.innerHTML = '';
+
+      if (availableCoupons.length === 0) {
+        container.innerHTML = '<p class="no-coupons">사용 가능한 쿠폰이 없습니다. <a href="coupons.html">쿠폰함에서 추가하기</a></p>';
+        return;
+      }
+
+      availableCoupons.forEach(coupon => {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const subtotal = cart.reduce((sum, item) => {
+          const quantity = item.quantity || item.qty || 1;
+          const price = item.price || 0;
+          return sum + (price * quantity);
+        }, 0);
+
+        const canUse = subtotal >= coupon.minPurchase;
+        const discountText = coupon.type === 'fixed' ? `${coupon.discount.toLocaleString()}원` : `${coupon.discount}%`;
+
+        const couponItem = document.createElement('div');
+        couponItem.className = `coupon-item ${!canUse ? 'disabled' : ''}`;
+        couponItem.innerHTML = `
+          <div class="coupon-item-info">
+            <span class="coupon-discount">${discountText}</span>
+            <span class="coupon-name">${coupon.name}</span>
+            <span class="coupon-condition">${coupon.minPurchase.toLocaleString()}원 이상 구매 시</span>
+          </div>
+          <button class="btn-apply-coupon" onclick="applyCouponByCode('${coupon.code}')" ${!canUse ? 'disabled' : ''}>적용</button>
+        `;
+        container.appendChild(couponItem);
+      });
+    }
+
+    function applyCouponByCode(code) {
+      document.getElementById('coupon-code').value = code;
+      applyCoupon();
     }
 
     function applyCoupon() {
       const couponCode = document.getElementById('coupon-code').value.trim().toUpperCase();
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      
+
       if (!couponCode) {
         alert('쿠폰 코드를 입력해주세요!');
         return;
       }
-      
+
       const subtotalCalculated = cart.reduce((sum, item) => {
         const quantity = item.quantity || item.qty || 1;
-        return sum + (item.price * quantity);
+        const price = item.price || 0;
+        return sum + (price * quantity);
       }, 0);
-      
+
+      // 사용자 쿠폰함에서 쿠폰 찾기
+      const coupons = JSON.parse(localStorage.getItem('userCoupons')) || [];
+      const coupon = coupons.find(c => c.code === couponCode && !c.used);
+
       let discount = 0;
       let message = '';
       freeShipping = false;
-      
-      switch(couponCode) {
-        case 'WELCOME10':
-          discount = Math.floor(subtotalCalculated * 0.1);
-          message = '10% 할인이 적용되었습니다!';
-          break;
-        case 'SAVE5000':
-          discount = 5000;
-          message = '5,000원 할인이 적용되었습니다!';
-          break;
-        case 'FREESHIP':
-          freeShipping = true;
-          message = '무료배송이 적용되었습니다!';
-          break;
-        default:
-          alert('유효하지 않은 쿠폰 코드입니다.');
+
+      if (coupon) {
+        // 유효기간 확인
+        if (new Date(coupon.expiryDate) < new Date()) {
+          alert('만료된 쿠폰입니다.');
           return;
+        }
+
+        // 최소 구매 금액 확인
+        if (subtotalCalculated < coupon.minPurchase) {
+          alert(`이 쿠폰은 ${coupon.minPurchase.toLocaleString()}원 이상 구매 시 사용 가능합니다.`);
+          return;
+        }
+
+        if (coupon.type === 'fixed') {
+          discount = coupon.discount;
+        } else if (coupon.type === 'percent') {
+          discount = Math.floor(subtotalCalculated * (coupon.discount / 100));
+        }
+
+        message = `${coupon.name} 쿠폰이 적용되었습니다!`;
+        appliedCoupon = couponCode;
+      } else {
+        alert('유효하지 않은 쿠폰 코드입니다.');
+        return;
       }
-      
-      appliedCoupon = couponCode;
+
       discountAmount = discount;
-      
+
       if (discount > 0) {
         document.getElementById('discount-row').style.display = 'flex';
         document.getElementById('discount-amount').textContent = `-₩${discount.toLocaleString()}`;
       }
-      
+
       calculateTotal();
       alert(message);
       document.getElementById('coupon-code').disabled = true;
+
+      // 쿠폰 목록 새로고침
+      loadUserCoupons();
     }
 
-    document.getElementById('payment-form').addEventListener('submit', function(e) {
+    document.getElementById('payment-form').addEventListener('submit', async function (e) {
       e.preventDefault();
-      
+
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      
+
       if (cart.length === 0) {
         alert('장바구니가 비어있습니다!');
         window.location.href = 'index.html';
         return;
       }
-      
-      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      // 재고 확인
+      for (const item of cart) {
+        if (window.checkStock && !window.checkStock(item.id, item.size, item.quantity || item.qty || 1)) {
+          alert(`${item.name} (사이즈: ${item.size})의 재고가 부족합니다. 장바구니를 확인해주세요.`);
+          return;
+        }
+      }
+
+      // 배송 정보 수집
+      const recipientName = document.getElementById('recipient-name').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const deliveryMessage = document.getElementById('delivery-message').value;
+      const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+
+      if (!recipientName || !phone || !address) {
+        alert('배송 정보를 모두 입력해주세요!');
+        return;
+      }
+
+      const subtotal = cart.reduce((sum, item) => {
+        const quantity = item.quantity || item.qty || 1;
+        const price = item.price || 0;
+        return sum + (price * quantity);
+      }, 0);
       const shipping = freeShipping ? 0 : 3000;
       const total = subtotal + shipping - discountAmount;
-      
+
+      // 결제 시뮬레이션 (실제로는 토스페이먼츠 API 호출)
+      const paymentSuccess = await simulatePayment(paymentMethod, total);
+
+      if (!paymentSuccess.success) {
+        // 결제 실패
+        window.location.href = `payment-failure.html?reason=${encodeURIComponent(paymentSuccess.reason)}&code=${paymentSuccess.code}`;
+        return;
+      }
+
+      // 재고 차감
+      cart.forEach(item => {
+        const quantity = item.quantity || item.qty || 1;
+        if (window.updateProductStock) {
+          window.updateProductStock(item.id, item.size, quantity, item.color);
+        }
+      });
+
+      // 주문 생성
+      const orderId = 'ORD-' + Date.now();
       const order = {
+        orderId: orderId,
         items: cart,
         subtotal: subtotal,
         shipping: shipping,
         discount: discountAmount,
         coupon: appliedCoupon,
         total: total,
+        paymentMethod: paymentMethod,
+        recipient: {
+          name: recipientName,
+          phone: phone,
+          address: address,
+          message: deliveryMessage
+        },
         date: new Date().toLocaleDateString('ko-KR'),
-        status: 'pending'
+        dateTime: new Date().toISOString(),
+        status: '결제완료'
       };
-      
+
+      // 쿠폰 사용 처리
+      if (appliedCoupon) {
+        const coupons = JSON.parse(localStorage.getItem('userCoupons')) || [];
+        const couponIndex = coupons.findIndex(c => c.code === appliedCoupon);
+        if (couponIndex !== -1) {
+          coupons[couponIndex].used = true;
+          coupons[couponIndex].usedDate = new Date().toISOString();
+          localStorage.setItem('userCoupons', JSON.stringify(coupons));
+        }
+      }
+
       const orders = JSON.parse(localStorage.getItem('orders')) || [];
       orders.push(order);
       localStorage.setItem('orders', JSON.stringify(orders));
-      
+
       localStorage.removeItem('cart');
-      
-      alert('결제가 완료되었습니다! 주문해 주셔서 감사합니다.');
-      window.location.href = 'orders.html';
+
+      // 결제 성공 페이지로 이동
+      window.location.href = `payment-success.html?orderId=${orderId}&paymentMethod=${encodeURIComponent(paymentMethod)}&amount=${total}`;
     });
+
+    // 결제 시뮬레이션 함수 (실제로는 토스페이먼츠 API 호출)
+    async function simulatePayment(method, amount) {
+      // 결제 처리 시뮬레이션 (2초 대기)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // 10% 확률로 결제 실패 시뮬레이션
+      const random = Math.random();
+      if (random < 0.1) {
+        return {
+          success: false,
+          reason: '카드 승인이 거부되었습니다. 카드사에 문의해주세요.',
+          code: 'CARD_DECLINED'
+        };
+      }
+
+      // 결제 성공
+      return {
+        success: true,
+        transactionId: 'TXN-' + Date.now(),
+        method: method,
+        amount: amount
+      };
+    }
 
     // Load theme on page load
     function loadTheme() {
@@ -219,10 +413,17 @@
       document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
+      // 로그인 체크
+      if (!requireLogin('결제는 로그인이 필요합니다.')) {
+        return;
+      }
+
       loadTheme();
       loadOrderSummary();
+      loadUserCoupons();
     });
   </script>
 </body>
+
 </html>

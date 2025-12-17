@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 결제 실패</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .failure-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 3rem;
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .failure-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .failure-container h1 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .failure-info {
+            background: #fff3cd;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .failure-info p {
+            margin: 0.5rem 0;
+            color: #856404;
+            text-align: left;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark-mode .failure-container {
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .failure-info {
+            background: #3a3a2a;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="failure-container">
+            <div class="failure-icon">❌</div>
+            <h1>결제에 실패했습니다</h1>
+            <p>결제 처리 중 문제가 발생했습니다.</p>
+
+            <div class="failure-info">
+                <p><strong>실패 사유:</strong></p>
+                <p id="failure-reason">알 수 없는 오류가 발생했습니다.</p>
+                <p style="margin-top: 1rem;"><strong>해결 방법:</strong></p>
+                <ul style="text-align: left; margin-left: 1.5rem;">
+                    <li>카드 정보를 다시 확인해주세요</li>
+                    <li>카드 한도를 확인해주세요</li>
+                    <li>다른 결제 수단을 이용해주세요</li>
+                    <li>문제가 계속되면 고객센터로 문의해주세요</li>
+                </ul>
+            </div>
+
+            <div class="button-group">
+                <a href="payment.html" class="btn btn-primary">다시 결제하기</a>
+                <a href="cart.html" class="btn btn-secondary">장바구니로 돌아가기</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTheme();
+
+            // URL에서 실패 사유 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const failureReason = urlParams.get('reason') || '알 수 없는 오류가 발생했습니다.';
+            const failureCode = urlParams.get('code');
+
+            let reasonText = failureReason;
+            if (failureCode) {
+                reasonText += ` (오류 코드: ${failureCode})`;
+            }
+
+            document.getElementById('failure-reason').textContent = reasonText;
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 추천 상품</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="recommendations-container">
+        <h2>✨ 맞춤 추천</h2>
+        <p class="subtitle">고객님의 취향을 분석한 개인화 추천 상품</p>
+
+        <!-- 최근 본 상품 기반 추천 -->
+        <section class="recommendation-section">
+            <h3>🔍 최근 본 상품과 비슷한 추천</h3>
+            <div id="similar-products" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 구매 히스토리 기반 추천 -->
+        <section class="recommendation-section">
+            <h3>🛍️ 구매 패턴 분석 추천</h3>
+            <div id="purchase-based" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 찜한 상품 기반 추천 -->
+        <section class="recommendation-section">
+            <h3>❤️ 찜한 상품과 어울리는 추천</h3>
+            <div id="wishlist-based" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 인기 상품 추천 -->
+        <section class="recommendation-section">
+            <h3>🔥 지금 인기있는 상품</h3>
+            <div id="trending-products" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 최근 추가된 신상품 -->
+        <section class="recommendation-section">
+            <h3>🆕 NEW 신상품</h3>
+            <div id="new-arrivals" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // 추천 알고리즘
+        function getRecommendations() {
+            const viewHistory = JSON.parse(localStorage.getItem('viewHistory')) || [];
+            const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory')) || [];
+            const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+            return {
+                similar: getSimilarProducts(viewHistory),
+                purchaseBased: getPurchaseBasedRecommendations(purchaseHistory),
+                wishlistBased: getWishlistBasedRecommendations(wishlist),
+                trending: getTrendingProducts(),
+                newArrivals: getNewArrivals()
+            };
+        }
+
+        function getSimilarProducts(viewHistory) {
+            if (viewHistory.length === 0) return getRandomProducts(4);
+
+            // 최근 본 상품들의 카테고리와 브랜드 분석
+            const recentViews = viewHistory.slice(-5);
+            const categories = recentViews.map(id => PRODUCTS.find(p => p.id === id)?.category).filter(Boolean);
+            const brands = recentViews.map(id => PRODUCTS.find(p => p.id === id)?.brand).filter(Boolean);
+
+            // 같은 카테고리 또는 브랜드의 다른 상품
+            return PRODUCTS
+                .filter(p => !viewHistory.includes(p.id))
+                .filter(p => categories.includes(p.category) || brands.includes(p.brand))
+                .slice(0, 4);
+        }
+
+        function getPurchaseBasedRecommendations(purchaseHistory) {
+            if (purchaseHistory.length === 0) return getRandomProducts(4);
+
+            // 구매한 상품들의 가격대와 카테고리 분석
+            const purchasedProducts = purchaseHistory.map(orderId => {
+                const order = JSON.parse(localStorage.getItem(`order_${orderId}`));
+                return order ? order.items : [];
+            }).flat();
+
+            const avgPrice = purchasedProducts.reduce((sum, item) => sum + item.price, 0) / purchasedProducts.length;
+            const purchasedCategories = purchasedProducts.map(item => item.category).filter(Boolean);
+
+            // 비슷한 가격대와 카테고리
+            return PRODUCTS
+                .filter(p => Math.abs(p.price - avgPrice) < avgPrice * 0.3)
+                .filter(p => purchasedCategories.includes(p.category))
+                .slice(0, 4);
+        }
+
+        function getWishlistBasedRecommendations(wishlist) {
+            if (wishlist.length === 0) return getRandomProducts(4);
+
+            // 찜한 상품들의 브랜드와 컬러 분석
+            const wishlistProducts = wishlist.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+            const colors = wishlistProducts.map(p => p.colors).flat();
+            const brands = wishlistProducts.map(p => p.brand);
+
+            // 비슷한 색상이나 브랜드
+            return PRODUCTS
+                .filter(p => !wishlist.includes(p.id))
+                .filter(p => {
+                    const hasCommonColor = p.colors.some(c => colors.includes(c));
+                    const hasSameBrand = brands.includes(p.brand);
+                    return hasCommonColor || hasSameBrand;
+                })
+                .slice(0, 4);
+        }
+
+        function getTrendingProducts() {
+            // 가장 많이 본 상품 (실제로는 조회수 데이터 사용)
+            const allViews = JSON.parse(localStorage.getItem('viewHistory')) || [];
+            const viewCounts = {};
+
+            allViews.forEach(id => {
+                viewCounts[id] = (viewCounts[id] || 0) + 1;
+            });
+
+            const sortedByViews = Object.entries(viewCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([id]) => parseInt(id))
+                .slice(0, 4);
+
+            const trending = sortedByViews.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+
+            // 조회 데이터가 부족하면 랜덤 추가
+            while (trending.length < 4) {
+                const randomProduct = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+                if (!trending.some(p => p.id === randomProduct.id)) {
+                    trending.push(randomProduct);
+                }
+            }
+
+            return trending;
+        }
+
+        function getNewArrivals() {
+            // ID가 높은 순으로 정렬 (최근 추가된 상품)
+            return [...PRODUCTS]
+                .sort((a, b) => b.id - a.id)
+                .slice(0, 4);
+        }
+
+        function getRandomProducts(count) {
+            const shuffled = [...PRODUCTS].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+
+        function renderProducts(containerId, products) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = '<p class="empty-message">추천할 상품이 없습니다.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.onclick = () => {
+                    addToViewHistory(product.id);
+                    window.location.href = `product.html?id=${product.id}`;
+                };
+
+                productCard.innerHTML = `
+                    <div class="product-image">
+                        <img src="${product.image}" alt="${product.name}">
+                    </div>
+                    <div class="product-info">
+                        <p class="product-brand">${product.brand || ''}</p>
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-price">${product.price.toLocaleString()}원</p>
+                        ${product.colors ? `
+                            <div class="product-colors">
+                                ${product.colors.slice(0, 3).map(color =>
+                    `<span class="color-dot" style="background: ${getColorCode(color)}" title="${color}"></span>`
+                ).join('')}
+                                ${product.colors.length > 3 ? `<span class="color-more">+${product.colors.length - 3}</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(productCard);
+            });
+        }
+
+        function addToViewHistory(productId) {
+            const viewHistory = JSON.parse(localStorage.getItem('viewHistory')) || [];
+            viewHistory.push(productId);
+
+            // 최근 50개만 유지
+            if (viewHistory.length > 50) {
+                viewHistory.shift();
+            }
+
+            localStorage.setItem('viewHistory', JSON.stringify(viewHistory));
+        }
+
+        function getColorCode(colorName) {
+            const colorMap = {
+                '화이트': '#FFFFFF',
+                '블랙': '#000000',
+                '그레이': '#808080',
+                '네이비': '#000080',
+                '블루': '#0000FF',
+                '라이트블루': '#ADD8E6',
+                '베이지': '#F5F5DC',
+                '브라운': '#8B4513',
+                '카키': '#C3B091',
+                '카멜': '#C19A6B',
+                '핑크': '#FFC0CB',
+                '아이보리': '#FFFFF0'
+            };
+            return colorMap[colorName] || '#CCCCCC';
+        }
+
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTheme();
+
+            const recommendations = getRecommendations();
+            renderProducts('similar-products', recommendations.similar);
+            renderProducts('purchase-based', recommendations.purchaseBased);
+            renderProducts('wishlist-based', recommendations.wishlistBased);
+            renderProducts('trending-products', recommendations.trending);
+            renderProducts('new-arrivals', recommendations.newArrivals);
+        });
+    </script>
+</body>
+
+</html>

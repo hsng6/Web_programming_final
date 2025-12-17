@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 결제 완료</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 3rem;
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-container h1 {
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .order-info {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .order-info p {
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .order-info strong {
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark-mode .success-container {
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .order-info {
+            background: #3a3a3a;
+        }
+
+        body.dark-mode .order-info strong {
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="success-container">
+            <div class="success-icon">✅</div>
+            <h1>결제가 완료되었습니다!</h1>
+            <p>주문해 주셔서 감사합니다.</p>
+
+            <div class="order-info" id="order-details">
+                <p><strong>주문번호:</strong> <span id="order-id">-</span></p>
+                <p><strong>결제방법:</strong> <span id="payment-method">-</span></p>
+                <p><strong>결제금액:</strong> <span id="total-amount">₩0</span></p>
+                <p><strong>주문일시:</strong> <span id="order-date">-</span></p>
+            </div>
+
+            <p style="color: #666; margin: 1rem 0;">
+                주문 상세 내역은 '주문내역' 페이지에서 확인하실 수 있습니다.
+            </p>
+
+            <div class="button-group">
+                <a href="orders.html" class="btn btn-primary">주문내역 보기</a>
+                <a href="index.html" class="btn btn-secondary">쇼핑 계속하기</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTheme();
+
+            // URL에서 결제 정보 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId') || 'ORD-' + Date.now();
+            const paymentMethod = urlParams.get('paymentMethod') || '카드';
+            const amount = urlParams.get('amount') || '0';
+
+            document.getElementById('order-id').textContent = orderId;
+            document.getElementById('payment-method').textContent = paymentMethod;
+            document.getElementById('total-amount').textContent = '₩' + parseInt(amount).toLocaleString();
+            document.getElementById('order-date').textContent = new Date().toLocaleString('ko-KR');
+        });
+    </script>
+</body>
+
+</html>

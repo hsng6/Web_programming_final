@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖 - 고객센터</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -41,8 +43,13 @@
 
         <section class="faq-section">
             <h3>자주 묻는 질문 (FAQ)</h3>
-            <div class="faq-list">
-                <div class="faq-item">
+            <div class="faq-search-box">
+                <input type="text" id="faq-search" placeholder="키워드로 FAQ 검색... (예: 배송, 환불, 결제)" oninput="searchFAQ()">
+                <button class="search-icon">🔍</button>
+            </div>
+            <p id="search-result-text" class="search-result-text"></p>
+            <div class="faq-list" id="faq-list">
+                <div class="faq-item" data-keywords="배송 기간 시간 속도 배송일 일수">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span>배송은 얼마나 걸리나요?</span>
                         <span class="faq-icon">▼</span>
@@ -52,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="faq-item">
+                <div class="faq-item" data-keywords="교환 환불 반품 반환 취소 변경">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span>교환/환불은 어떻게 하나요?</span>
                         <span class="faq-icon">▼</span>
@@ -62,7 +69,7 @@
                     </div>
                 </div>
 
-                <div class="faq-item">
+                <div class="faq-item" data-keywords="배송비 요금 가격 무료배송">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span>배송비는 얼마인가요?</span>
                         <span class="faq-icon">▼</span>
@@ -72,7 +79,7 @@
                     </div>
                 </div>
 
-                <div class="faq-item">
+                <div class="faq-item" data-keywords="회원가입 비회원 구매 가입">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span>회원가입 없이 구매 가능한가요?</span>
                         <span class="faq-icon">▼</span>
@@ -82,13 +89,43 @@
                     </div>
                 </div>
 
-                <div class="faq-item">
+                <div class="faq-item" data-keywords="결제 결제방법 카드 신용카드 체크카드 계좌이체 무통장입금">
                     <div class="faq-question" onclick="toggleFaq(this)">
                         <span>결제 방법은 무엇이 있나요?</span>
                         <span class="faq-icon">▼</span>
                     </div>
                     <div class="faq-answer">
                         신용카드, 체크카드, 무통장입금, 카카오페이, 네이버페이 등 다양한 결제수단을 지원합니다.
+                    </div>
+                </div>
+
+                <div class="faq-item" data-keywords="사이즈 치수 크기 사이즈표 사이즈추천 AI크기">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>사이즈는 어떻게 선택하나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        상품 상세 페이지에서 사이즈표를 확인하실 수 있습니다. 또한 AI 핏 기능을 활용하면 내 체형에 맞는 사이즈를 추천받을 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="faq-item" data-keywords="재고 품절 입고 재입고">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>품절된 상품은 언제 다시 들어오나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        재입고 일정은 상품마다 다르며, 품절 상품에 대한 알림 신청을 하시면 재입고 시 알려드립니다.
+                    </div>
+                </div>
+
+                <div class="faq-item" data-keywords="쿠폰 할인 할인쿠폰 적립금 포인트">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>쿠폰이나 적립금은 어떻게 사용하나요?</span>
+                        <span class="faq-icon">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        결제 페이지에서 보유하신 쿠폰이나 적립금을 선택하여 사용하실 수 있습니다. 쿠폰과 적립금은 중복 사용 가능합니다.
                     </div>
                 </div>
             </div>
@@ -148,7 +185,7 @@
         function toggleFaq(element) {
             const answer = element.nextElementSibling;
             const icon = element.querySelector('.faq-icon');
-            
+
             answer.classList.toggle('active');
             icon.classList.toggle('rotated');
         }
@@ -156,34 +193,124 @@
         function loadInquiries() {
             const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
             const inquiriesList = document.getElementById('inquiries-list');
-            
+
             inquiriesList.innerHTML = '';
-            
+
             if (inquiries.length === 0) {
                 inquiriesList.innerHTML = '<p class="empty-message">문의 내역이 없습니다.</p>';
                 return;
             }
 
             inquiries.reverse().forEach((inquiry, index) => {
+                const actualIndex = inquiries.length - 1 - index;
                 const inquiryDiv = document.createElement('div');
                 inquiryDiv.className = 'inquiry-card';
+
+                const responseHtml = inquiry.response
+                    ? `<div class="inquiry-response">
+                        <div class="response-header">
+                            <strong>👨‍💼 관리자 답변</strong>
+                            <span class="response-date">${inquiry.responseDate}</span>
+                        </div>
+                        <p class="response-text">${inquiry.response}</p>
+                       </div>`
+                    : '';
+
                 inquiryDiv.innerHTML = `
-                    <div class="inquiry-header">
-                        <span class="inquiry-type">[${inquiry.type}]</span>
-                        <span class="inquiry-subject">${inquiry.subject}</span>
-                        <span class="inquiry-date">${inquiry.date}</span>
+                    <div class="inquiry-header" onclick="toggleInquiry(this)">
+                        <div class="inquiry-title-section">
+                            <span class="inquiry-type">[${inquiry.type}]</span>
+                            <span class="inquiry-subject">${inquiry.subject}</span>
+                        </div>
+                        <div class="inquiry-meta">
+                            <span class="inquiry-status ${inquiry.response ? 'answered' : 'pending'}">
+                                ${inquiry.response ? '✅ 답변완료' : '⏳ 답변대기'}
+                            </span>
+                            <span class="inquiry-date">${inquiry.date}</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
                     </div>
-                    <div class="inquiry-status ${inquiry.answered ? 'answered' : 'pending'}">
-                        ${inquiry.answered ? '답변완료' : '답변대기'}
+                    <div class="inquiry-details">
+                        <div class="inquiry-content">
+                            <p><strong>문의자:</strong> ${inquiry.name} (${inquiry.email})</p>
+                            <p><strong>문의내용:</strong></p>
+                            <p class="inquiry-message">${inquiry.message}</p>
+                        </div>
+                        ${responseHtml}
+                        ${!inquiry.response ? `<button class="btn-simulate-response" onclick="simulateResponse(${actualIndex})">답변 시뮬레이션</button>` : ''}
                     </div>
                 `;
                 inquiriesList.appendChild(inquiryDiv);
             });
         }
 
-        document.getElementById('inquiry-form').addEventListener('submit', function(e) {
+        function toggleInquiry(element) {
+            const details = element.nextElementSibling;
+            const icon = element.querySelector('.toggle-icon');
+            details.classList.toggle('active');
+            icon.classList.toggle('rotated');
+        }
+
+        function simulateResponse(index) {
+            const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
+            const inquiry = inquiries[index];
+
+            // 샘플 답변 생성
+            const sampleResponses = [
+                `안녕하세요 ${inquiry.name}님, 문의 주셔서 감사합니다.\\n\\n문의하신 내용 확인하였습니다. 해당 문제는 빠른 시일 내에 처리해 드리겠습니다.\\n\\n추가로 궁금하신 사항이 있으시면 언제든지 문의 주세요.\\n\\n감사합니다.`,
+                `안녕하세요,\\n\\n문의하신 ${inquiry.type} 관련 내용 확인하였습니다.\\n\\n현재 해당 건은 정상적으로 처리 중이며, 결과는 이메일로 별도 안내 드리겠습니다.\\n\\n저희 인숖을 이용해 주셔서 감사합니다.`,
+                `${inquiry.name}님 안녕하세요,\\n\\n문의 주신 내용에 대해 답변 드립니다.\\n\\n고객님의 불편사항에 대해 진심으로 사과드리며, 해당 문제는 신속히 해결하도록 하겠습니다.\\n\\n더 나은 서비스로 보답하겠습니다. 감사합니다.`
+            ];
+
+            inquiry.response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+            inquiry.responseDate = new Date().toLocaleDateString('ko-KR');
+            inquiry.answered = true;
+
+            inquiries[index] = inquiry;
+            localStorage.setItem('inquiries', JSON.stringify(inquiries));
+
+            alert('답변이 등록되었습니다!');
+            loadInquiries();
+        }
+
+        // FAQ 검색 기능
+        function searchFAQ() {
+            const searchTerm = document.getElementById('faq-search').value.toLowerCase().trim();
+            const faqItems = document.querySelectorAll('.faq-item');
+            const resultText = document.getElementById('search-result-text');
+            let visibleCount = 0;
+
+            if (searchTerm === '') {
+                faqItems.forEach(item => item.style.display = 'block');
+                resultText.textContent = '';
+                return;
+            }
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                const keywords = item.dataset.keywords?.toLowerCase() || '';
+
+                if (question.includes(searchTerm) || answer.includes(searchTerm) || keywords.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                resultText.textContent = `"${searchTerm}"에 대한 검색 결과가 없습니다. 1:1 문의를 이용해주세요.`;
+                resultText.style.color = '#ff6b6b';
+            } else {
+                resultText.textContent = `${visibleCount}개의 FAQ를 찾았습니다.`;
+                resultText.style.color = '#667eea';
+            }
+        }
+
+        document.getElementById('inquiry-form').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const inquiry = {
                 name: document.getElementById('inquiry-name').value,
                 email: document.getElementById('inquiry-email').value,
@@ -193,11 +320,11 @@
                 date: new Date().toLocaleDateString('ko-KR'),
                 answered: false
             };
-            
+
             const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
             inquiries.push(inquiry);
             localStorage.setItem('inquiries', JSON.stringify(inquiries));
-            
+
             alert('문의가 등록되었습니다. 빠른 시일 내에 답변드리겠습니다.');
             this.reset();
             loadInquiries();
@@ -219,10 +346,11 @@
             document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadTheme();
             loadInquiries();
         });
     </script>
 </body>
+
 </html>

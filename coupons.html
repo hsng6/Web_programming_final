@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인숖 - 쿠폰</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <h1>인숖</h1>
+        </a>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="mypage.html">마이페이지</a>
+            <a href="orders.html">주문내역</a>
+            <a href="support.html">고객센터</a>
+            <a href="wishlist.html" class="wishlist-link">❤️ 찜</a>
+            <a href="cart.html" class="cart-link">🛒 장바구니</a>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </nav>
+    </header>
+
+    <main class="coupons-container">
+        <h2>🎫 쿠폰함</h2>
+
+        <!-- 쿠폰 입력 섹션 -->
+        <section class="coupon-input-section">
+            <h3>쿠폰 코드 입력</h3>
+            <div class="coupon-input-box">
+                <input type="text" id="coupon-code-input" placeholder="쿠폰 코드를 입력하세요">
+                <button onclick="registerCoupon()">등록</button>
+            </div>
+        </section>
+
+        <!-- 사용 가능한 쿠폰 -->
+        <section class="available-coupons-section">
+            <h3>사용 가능한 쿠폰 (<span id="available-count">0</span>장)</h3>
+            <div id="available-coupons-list" class="coupons-grid">
+                <!-- Available coupons will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 사용된 쿠폰 -->
+        <section class="used-coupons-section">
+            <h3>사용한 쿠폰 (<span id="used-count">0</span>장)</h3>
+            <div id="used-coupons-list" class="coupons-grid">
+                <!-- Used coupons will be loaded here -->
+            </div>
+        </section>
+
+        <!-- 만료된 쿠폰 -->
+        <section class="expired-coupons-section">
+            <h3>만료된 쿠폰 (<span id="expired-count">0</span>장)</h3>
+            <div id="expired-coupons-list" class="coupons-grid">
+                <!-- Expired coupons will be loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 인숖. All rights reserved.</p>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // 쿠폰 시스템 초기화
+        function initializeCoupons() {
+            const defaultCoupons = [
+                {
+                    code: 'WELCOME2025',
+                    name: '신규 회원 환영 쿠폰',
+                    discount: 5000,
+                    type: 'fixed',
+                    minPurchase: 30000,
+                    expiryDate: '2025-12-31',
+                    used: false
+                },
+                {
+                    code: 'WINTER20',
+                    name: '겨울 시즌 20% 할인',
+                    discount: 20,
+                    type: 'percent',
+                    minPurchase: 50000,
+                    expiryDate: '2025-12-31',
+                    used: false
+                },
+                {
+                    code: 'FIRSTBUY',
+                    name: '첫 구매 감사 쿠폰',
+                    discount: 10000,
+                    type: 'fixed',
+                    minPurchase: 50000,
+                    expiryDate: '2025-12-31',
+                    used: false
+                },
+                {
+                    code: 'NEWYEAR2025',
+                    name: '새해 특별 쿠폰',
+                    discount: 15000,
+                    type: 'fixed',
+                    minPurchase: 80000,
+                    expiryDate: '2026-01-31',
+                    used: false
+                },
+                {
+                    code: 'HOLIDAY30',
+                    name: '연말 시즌 30% 할인',
+                    discount: 30,
+                    type: 'percent',
+                    minPurchase: 100000,
+                    expiryDate: '2025-12-31',
+                    used: false
+                },
+                {
+                    code: 'LUCKY7777',
+                    name: '럭키세븐 행운의 쿠폰',
+                    discount: 7777,
+                    type: 'fixed',
+                    minPurchase: 40000,
+                    expiryDate: '2026-02-28',
+                    used: false
+                },
+                {
+                    code: 'MEGA50',
+                    name: '메가세일 50% 할인',
+                    discount: 50,
+                    type: 'percent',
+                    minPurchase: 150000,
+                    expiryDate: '2025-12-31',
+                    used: false
+                },
+                {
+                    code: 'BIRTHDAY3000',
+                    name: '생일 축하 쿠폰',
+                    discount: 3000,
+                    type: 'fixed',
+                    minPurchase: 20000,
+                    expiryDate: '2026-03-31',
+                    used: false
+                }
+            ];
+
+            const existingCoupons = JSON.parse(localStorage.getItem('userCoupons'));
+            if (!existingCoupons || existingCoupons.length === 0) {
+                localStorage.setItem('userCoupons', JSON.stringify(defaultCoupons));
+            }
+        }
+
+        function loadCoupons() {
+            const coupons = JSON.parse(localStorage.getItem('userCoupons')) || [];
+            const today = new Date();
+
+            const available = coupons.filter(c => !c.used && new Date(c.expiryDate) >= today);
+            const used = coupons.filter(c => c.used);
+            const expired = coupons.filter(c => !c.used && new Date(c.expiryDate) < today);
+
+            document.getElementById('available-count').textContent = available.length;
+            document.getElementById('used-count').textContent = used.length;
+            document.getElementById('expired-count').textContent = expired.length;
+
+            renderCoupons('available-coupons-list', available, 'available');
+            renderCoupons('used-coupons-list', used, 'used');
+            renderCoupons('expired-coupons-list', expired, 'expired');
+        }
+
+        function renderCoupons(containerId, coupons, status) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (coupons.length === 0) {
+                container.innerHTML = '<p class="empty-message">쿠폰이 없습니다.</p>';
+                return;
+            }
+
+            coupons.forEach(coupon => {
+                const couponCard = document.createElement('div');
+                couponCard.className = `coupon-card ${status}`;
+
+                const discountText = coupon.type === 'fixed'
+                    ? `${coupon.discount.toLocaleString()}원`
+                    : `${coupon.discount}%`;
+
+                const minPurchaseText = coupon.minPurchase
+                    ? `${coupon.minPurchase.toLocaleString()}원 이상 구매 시`
+                    : '제한 없음';
+
+                couponCard.innerHTML = `
+                    <div class="coupon-header">
+                        <div class="coupon-discount">${discountText}</div>
+                        <div class="coupon-status-badge">${status === 'available' ? '사용가능' : status === 'used' ? '사용완료' : '기간만료'}</div>
+                    </div>
+                    <div class="coupon-body">
+                        <h4 class="coupon-name">${coupon.name}</h4>
+                        <p class="coupon-condition">${minPurchaseText}</p>
+                        <p class="coupon-code">코드: <strong>${coupon.code}</strong></p>
+                        <p class="coupon-expiry">유효기간: ${coupon.expiryDate}까지</p>
+                    </div>
+                    ${status === 'available' ? `<button class="btn-copy-code" onclick="copyCouponCode('${coupon.code}')">코드 복사</button>` : ''}
+                `;
+                container.appendChild(couponCard);
+            });
+        }
+
+        function registerCoupon() {
+            const codeInput = document.getElementById('coupon-code-input');
+            const code = codeInput.value.trim().toUpperCase();
+
+            if (!code) {
+                alert('쿠폰 코드를 입력해주세요.');
+                return;
+            }
+
+            const coupons = JSON.parse(localStorage.getItem('userCoupons')) || [];
+
+            // 이미 등록된 쿠폰인지 확인
+            if (coupons.some(c => c.code === code)) {
+                alert('이미 등록된 쿠폰입니다.');
+                codeInput.value = '';
+                return;
+            }
+
+            // 사용 가능한 쿠폰 코드 목록
+            const availableCouponCodes = {
+                'SPECIAL50': {
+                    name: '특별 할인 50% 쿠폰',
+                    discount: 50,
+                    type: 'percent',
+                    minPurchase: 100000,
+                    expiryDate: '2025-12-31'
+                },
+                'VIP10000': {
+                    name: 'VIP 고객 전용 쿠폰',
+                    discount: 10000,
+                    type: 'fixed',
+                    minPurchase: 50000,
+                    expiryDate: '2025-12-31'
+                },
+                'FREESHIP': {
+                    name: '무료 배송 쿠폰',
+                    discount: 3000,
+                    type: 'fixed',
+                    minPurchase: 0,
+                    expiryDate: '2025-12-31'
+                },
+                'SURPRISE30': {
+                    name: '깜짝 30% 할인',
+                    discount: 30,
+                    type: 'percent',
+                    minPurchase: 70000,
+                    expiryDate: '2025-12-31'
+                },
+                'FASHION15': {
+                    name: '패션위크 15% 할인',
+                    discount: 15,
+                    type: 'percent',
+                    minPurchase: 60000,
+                    expiryDate: '2026-01-31'
+                },
+                'SUPER20000': {
+                    name: '슈퍼특가 20,000원 할인',
+                    discount: 20000,
+                    type: 'fixed',
+                    minPurchase: 100000,
+                    expiryDate: '2026-02-28'
+                },
+                'FRIEND5000': {
+                    name: '친구추천 5,000원 쿠폰',
+                    discount: 5000,
+                    type: 'fixed',
+                    minPurchase: 30000,
+                    expiryDate: '2026-03-31'
+                },
+                'STUDENT10': {
+                    name: '학생 할인 10% 쿠폰',
+                    discount: 10,
+                    type: 'percent',
+                    minPurchase: 40000,
+                    expiryDate: '2026-02-28'
+                },
+                'THANKS25': {
+                    name: '감사 25% 할인',
+                    discount: 25,
+                    type: 'percent',
+                    minPurchase: 80000,
+                    expiryDate: '2025-12-31'
+                },
+                'PREMIUM15000': {
+                    name: '프리미엄 15,000원 할인',
+                    discount: 15000,
+                    type: 'fixed',
+                    minPurchase: 90000,
+                    expiryDate: '2026-01-31'
+                },
+                'REVIEW3000': {
+                    name: '리뷰작성 감사 쿠폰',
+                    discount: 3000,
+                    type: 'fixed',
+                    minPurchase: 20000,
+                    expiryDate: '2026-03-31'
+                },
+                'EARLYBIRD': {
+                    name: '얼리버드 특가',
+                    discount: 12000,
+                    type: 'fixed',
+                    minPurchase: 60000,
+                    expiryDate: '2026-01-15'
+                },
+                'FLASH40': {
+                    name: '플래시 세일 40% 할인',
+                    discount: 40,
+                    type: 'percent',
+                    minPurchase: 120000,
+                    expiryDate: '2025-12-31'
+                },
+                'COMEBACK8000': {
+                    name: '컴백 고객 8,000원 할인',
+                    discount: 8000,
+                    type: 'fixed',
+                    minPurchase: 50000,
+                    expiryDate: '2026-02-28'
+                },
+                'LOYALTY35': {
+                    name: '충성고객 35% 할인',
+                    discount: 35,
+                    type: 'percent',
+                    minPurchase: 100000,
+                    expiryDate: '2026-01-31'
+                }
+            };
+
+            if (availableCouponCodes[code]) {
+                const newCoupon = {
+                    code: code,
+                    ...availableCouponCodes[code],
+                    used: false
+                };
+                coupons.push(newCoupon);
+                localStorage.setItem('userCoupons', JSON.stringify(coupons));
+                alert(`✅ "${newCoupon.name}" 쿠폰이 등록되었습니다!`);
+                codeInput.value = '';
+                loadCoupons();
+            } else {
+                alert('❌ 유효하지 않은 쿠폰 코드입니다.');
+                codeInput.value = '';
+            }
+        }
+
+        function copyCouponCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`쿠폰 코드 "${code}"가 복사되었습니다! 결제 시 사용하세요.`);
+            });
+        }
+
+        // 테마 로드
+        function loadTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTheme();
+            initializeCoupons();
+            loadCoupons();
+        });
+    </script>
+</body>
+
+</html>

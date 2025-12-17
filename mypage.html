@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖 - 마이페이지</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <a href="index.html" class="logo">
@@ -14,6 +16,8 @@
         <nav>
             <a href="index.html">홈</a>
             <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
+            <a href="recommendations.html">✨ 추천</a>
+            <a href="coupons.html">🎟️ 쿠폰</a>
             <a href="mypage.html">마이페이지</a>
             <a href="orders.html">주문내역</a>
             <a href="support.html">고객센터</a>
@@ -25,29 +29,35 @@
 
     <main class="mypage-container">
         <h2>마이페이지</h2>
-        
+
         <section class="user-info-section">
             <h3>회원 정보</h3>
             <div class="info-card">
                 <div class="info-row">
                     <span class="info-label">이름:</span>
-                    <span class="info-value" id="user-name">홍길동</span>
+                    <span class="info-value" id="user-name">로딩 중...</span>
                     <button class="edit-btn" onclick="editUserInfo('name')">수정</button>
                 </div>
                 <div class="info-row">
                     <span class="info-label">이메일:</span>
-                    <span class="info-value" id="user-email">user@example.com</span>
-                    <button class="edit-btn" onclick="editUserInfo('email')">수정</button>
+                    <span class="info-value" id="user-email">로딩 중...</span>
+                    <button class="edit-btn" disabled style="opacity: 0.5; cursor: not-allowed;"
+                        title="이메일은 변경할 수 없습니다">변경불가</button>
                 </div>
                 <div class="info-row">
                     <span class="info-label">전화번호:</span>
-                    <span class="info-value" id="user-phone">010-1234-5678</span>
+                    <span class="info-value" id="user-phone">로딩 중...</span>
                     <button class="edit-btn" onclick="editUserInfo('phone')">수정</button>
                 </div>
                 <div class="info-row">
                     <span class="info-label">주소:</span>
-                    <span class="info-value" id="user-address">서울시 강남구 테헤란로 123</span>
+                    <span class="info-value" id="user-address">로딩 중...</span>
                     <button class="edit-btn" onclick="editUserInfo('address')">수정</button>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">비밀번호:</span>
+                    <span class="info-value">••••••••</span>
+                    <button class="edit-btn" onclick="changePassword()">변경</button>
                 </div>
             </div>
         </section>
@@ -70,7 +80,7 @@
                     <div class="quick-link-title">고객센터</div>
                     <div class="quick-link-desc">1:1 문의하기</div>
                 </a>
-                <a href="#" class="quick-link-card" onclick="alert('준비 중입니다.'); return false;">
+                <a href="wishlist.html" class="quick-link-card">
                     <div class="quick-link-icon">⭐</div>
                     <div class="quick-link-title">찜 목록</div>
                     <div class="quick-link-desc">관심 상품 보기</div>
@@ -95,11 +105,63 @@
                 </div>
             </div>
         </section>
+
+        <section class="shopping-analysis-section">
+            <h3>📊 나의 쇼핑 분석</h3>
+
+            <div class="analysis-summary">
+                <div class="summary-card">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-content">
+                        <div class="summary-label">총 소비금액</div>
+                        <div class="summary-value" id="total-spent">₩0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">🛍️</div>
+                    <div class="summary-content">
+                        <div class="summary-label">총 구매 상품</div>
+                        <div class="summary-value" id="total-products">0개</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">📈</div>
+                    <div class="summary-content">
+                        <div class="summary-label">평균 주문금액</div>
+                        <div class="summary-value" id="avg-order">₩0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-analysis">
+                <h4>카테고리별 구매 현황</h4>
+                <div id="category-chart" class="chart-container">
+                    <!-- 카테고리별 차트 -->
+                </div>
+            </div>
+
+            <div class="favorite-products">
+                <h4>가장 많이 구매한 상품 TOP 3</h4>
+                <div id="top-products" class="top-products-list">
+                    <!-- 상위 상품 목록 -->
+                </div>
+            </div>
+
+            <div class="shopping-habits">
+                <h4>💡 나의 쇼핑 습관 분석</h4>
+                <div id="shopping-insights" class="insights-list">
+                    <!-- 쇼핑 습관 인사이트 -->
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
         <p>&copy; 2025 인숖. All rights reserved.</p>
     </footer>
+
+    <!-- 토스트 알림 -->
+    <div id="toast" class="toast"></div>
 
     <script src="main.js"></script>
     <script>
@@ -120,16 +182,36 @@
         }
 
         // Load user statistics
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // 로그인 체크
+            if (!requireLogin('마이페이지는 로그인이 필요합니다.')) {
+                return;
+            }
+
             loadTheme();
-            
-            // Load user info from localStorage
-            const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {
-                name: '홍길동',
-                email: 'user@example.com',
-                phone: '010-1234-5678',
-                address: '서울시 강남구 테헤란로 123'
-            };
+
+            // 현재 로그인된 사용자 정보 가져오기
+            const currentUser = getCurrentUser();
+
+            if (!currentUser) {
+                alert('사용자 정보를 불러올 수 없습니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // localStorage에서 userInfo 가져오기 (없으면 currentUser 정보 사용)
+            let userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+            // userInfo가 없거나 현재 로그인 사용자와 다르면 currentUser 정보로 초기화
+            if (!userInfo || userInfo.email !== currentUser.email) {
+                userInfo = {
+                    name: currentUser.name || '이름 없음',
+                    email: currentUser.email || '',
+                    phone: currentUser.phone || '전화번호를 입력해주세요',
+                    address: currentUser.address || '주소를 입력해주세요'
+                };
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            }
 
             document.getElementById('user-name').textContent = userInfo.name;
             document.getElementById('user-email').textContent = userInfo.email;
@@ -145,14 +227,199 @@
 
             // Count total reviews
             let totalReviews = 0;
-            PRODUCTS.forEach(product => {
-                const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
-                totalReviews += reviews.length;
-            });
+            if (typeof PRODUCTS !== 'undefined') {
+                PRODUCTS.forEach(product => {
+                    const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
+                    totalReviews += reviews.length;
+                });
+            }
             document.getElementById('total-reviews').textContent = totalReviews;
+
+            // 쇼핑 분석 데이터 로드
+            loadShoppingAnalysis(orders);
         });
 
+        // 쇼핑 분석 기능
+        function loadShoppingAnalysis(orders) {
+            // 완료된 주문만 분석 (취소/환불 제외)
+            const completedOrders = orders.filter(order =>
+                !['cancelled', 'refund_requested', 'refunded'].includes(order.status)
+            );
+
+            if (completedOrders.length === 0) {
+                document.getElementById('shopping-insights').innerHTML =
+                    '<p class="empty-message">아직 구매 내역이 없습니다.</p>';
+                return;
+            }
+
+            // 1. 총 소비금액 및 기본 통계
+            const totalSpent = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            const totalProducts = completedOrders.reduce((sum, order) =>
+                sum + (order.items?.length || 0), 0
+            );
+            const avgOrder = totalSpent / completedOrders.length;
+
+            document.getElementById('total-spent').textContent = `₩${totalSpent.toLocaleString()}`;
+            document.getElementById('total-products').textContent = `${totalProducts}개`;
+            document.getElementById('avg-order').textContent = `₩${Math.round(avgOrder).toLocaleString()}`;
+
+            // 2. 카테고리별 분석
+            const categoryStats = {};
+            completedOrders.forEach(order => {
+                order.items?.forEach(item => {
+                    const category = item.category || 'OUTER';
+                    if (!categoryStats[category]) {
+                        categoryStats[category] = { count: 0, total: 0 };
+                    }
+                    categoryStats[category].count += item.qty || 1;
+                    categoryStats[category].total += (item.price || 0) * (item.qty || 1);
+                });
+            });
+
+            // 카테고리별 차트 생성
+            const categoryChart = document.getElementById('category-chart');
+            const maxCount = Math.max(...Object.values(categoryStats).map(s => s.count));
+
+            categoryChart.innerHTML = Object.entries(categoryStats)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map(([category, stats]) => {
+                    const percentage = (stats.count / totalProducts * 100).toFixed(1);
+                    const barWidth = (stats.count / maxCount * 100);
+                    return `
+                        <div class="category-bar-item">
+                            <div class="category-name">${category}</div>
+                            <div class="category-bar-wrapper">
+                                <div class="category-bar" style="width: ${barWidth}%"></div>
+                            </div>
+                            <div class="category-stats">
+                                <span>${stats.count}개 (${percentage}%)</span>
+                                <span>₩${stats.total.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            // 3. 가장 많이 구매한 상품 TOP 3
+            const productCount = {};
+            completedOrders.forEach(order => {
+                order.items?.forEach(item => {
+                    const key = item.id || item.name;
+                    if (!productCount[key]) {
+                        productCount[key] = {
+                            ...item,
+                            totalQty: 0,
+                            totalSpent: 0
+                        };
+                    }
+                    productCount[key].totalQty += item.qty || 1;
+                    productCount[key].totalSpent += (item.price || 0) * (item.qty || 1);
+                });
+            });
+
+            const topProducts = Object.values(productCount)
+                .sort((a, b) => b.totalQty - a.totalQty)
+                .slice(0, 3);
+
+            document.getElementById('top-products').innerHTML = topProducts.length > 0
+                ? topProducts.map((product, index) => `
+                    <div class="top-product-item">
+                        <div class="top-rank">${index + 1}</div>
+                        <img src="${product.image}" alt="${product.name}">
+                        <div class="top-product-info">
+                            <h5>${product.name}</h5>
+                            <p>${product.totalQty}회 구매 · ₩${product.totalSpent.toLocaleString()}</p>
+                        </div>
+                    </div>
+                `).join('')
+                : '<p class="empty-message">구매 내역이 부족합니다.</p>';
+
+            // 4. 쇼핑 습관 인사이트
+            const insights = generateShoppingInsights(categoryStats, completedOrders, avgOrder);
+            document.getElementById('shopping-insights').innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <div class="insight-icon">${insight.icon}</div>
+                    <div class="insight-text">${insight.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function generateShoppingInsights(categoryStats, orders, avgOrder) {
+            const insights = [];
+
+            // 가장 많이 구매한 카테고리
+            const favCategory = Object.entries(categoryStats)
+                .sort((a, b) => b[1].count - a[1].count)[0];
+
+            if (favCategory) {
+                const categoryNames = {
+                    'TOPS': '상의',
+                    'PANTS': '하의',
+                    'OUTER': '아우터',
+                    'SHOES': '신발'
+                };
+                insights.push({
+                    icon: '👕',
+                    text: `<strong>${categoryNames[favCategory[0]] || favCategory[0]}</strong>를 가장 많이 구매하셨어요! (${favCategory[1].count}개)`
+                });
+            }
+
+            // 평균 주문 금액 기준 소비 성향
+            if (avgOrder > 100000) {
+                insights.push({
+                    icon: '💎',
+                    text: '평균 주문금액이 높은 편이에요. 프리미엄 제품을 선호하시는군요!'
+                });
+            } else if (avgOrder > 50000) {
+                insights.push({
+                    icon: '🎯',
+                    text: '합리적인 가격대의 상품을 선호하시는 스타일이네요!'
+                });
+            } else {
+                insights.push({
+                    icon: '💰',
+                    text: '가성비를 중시하는 스마트 쇼핑을 하고 계세요!'
+                });
+            }
+
+            // 구매 빈도
+            if (orders.length >= 10) {
+                insights.push({
+                    icon: '🔥',
+                    text: `총 <strong>${orders.length}번</strong> 주문하셨네요! 단골 고객이시군요! 감사합니다 🙏`
+                });
+            } else if (orders.length >= 5) {
+                insights.push({
+                    icon: '⭐',
+                    text: '꾸준히 찾아주셔서 감사합니다! 앞으로도 좋은 상품 준비하겠습니다.'
+                });
+            }
+
+            // 카테고리 다양성
+            const categoryCount = Object.keys(categoryStats).length;
+            if (categoryCount >= 3) {
+                insights.push({
+                    icon: '🌈',
+                    text: '다양한 카테고리의 상품을 구매하시는 센스있는 쇼핑을 하고 계세요!'
+                });
+            }
+
+            return insights;
+        }
+
         function editUserInfo(field) {
+            const currentUser = getCurrentUser();
+
+            if (!currentUser) {
+                alert('로그인 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 이메일은 변경 불가
+            if (field === 'email') {
+                alert('이메일은 변경할 수 없습니다.');
+                return;
+            }
+
             const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
             const fieldNames = {
                 name: '이름',
@@ -161,15 +428,86 @@
                 address: '주소'
             };
 
-            const newValue = prompt(`새로운 ${fieldNames[field]}을(를) 입력하세요:`, userInfo[field]);
-            
-            if (newValue && newValue.trim()) {
+            const currentValue = userInfo[field] || '';
+            const newValue = prompt(`새로운 ${fieldNames[field]}을(를) 입력하세요:`, currentValue);
+
+            if (newValue && newValue.trim() && newValue.trim() !== currentValue) {
                 userInfo[field] = newValue.trim();
                 localStorage.setItem('userInfo', JSON.stringify(userInfo));
+
+                // 회원가입 정보도 함께 업데이트 (users 배열)
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const userIndex = users.findIndex(u => u.email === currentUser.email);
+                if (userIndex > -1) {
+                    users[userIndex][field] = newValue.trim();
+                    localStorage.setItem('users', JSON.stringify(users));
+
+                    // currentUser도 업데이트
+                    const updatedUser = users[userIndex];
+                    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                }
+
                 document.getElementById(`user-${field}`).textContent = newValue.trim();
                 alert('정보가 수정되었습니다.');
             }
         }
+
+        // 비밀번호 해시 함수 (login.html과 동일)
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hash));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // 비밀번호 변경 함수
+        async function changePassword() {
+            const currentUser = getCurrentUser();
+
+            const currentPassword = prompt('현재 비밀번호를 입력하세요:');
+            if (!currentPassword) return;
+
+            // 현재 비밀번호 확인
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userIndex = users.findIndex(u => u.email === currentUser.email);
+
+            if (userIndex === -1) {
+                alert('사용자 정보를 찾을 수 없습니다.');
+                return;
+            }
+
+            const hashedCurrentPassword = await hashPassword(currentPassword);
+            if (users[userIndex].password !== hashedCurrentPassword) {
+                alert('현재 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+
+            const newPassword = prompt('새 비밀번호를 입력하세요 (최소 6자):');
+            if (!newPassword || newPassword.length < 6) {
+                alert('비밀번호는 최소 6자 이상이어야 합니다.');
+                return;
+            }
+
+            const confirmPassword = prompt('새 비밀번호를 다시 입력하세요:');
+            if (newPassword !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+
+            // 새 비밀번호 해시화 및 저장
+            const hashedNewPassword = await hashPassword(newPassword);
+            users[userIndex].password = hashedNewPassword;
+            localStorage.setItem('users', JSON.stringify(users));
+
+            // currentUser 업데이트
+            const updatedUser = users[userIndex];
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+            alert('비밀번호가 성공적으로 변경되었습니다.');
+        }
     </script>
 </body>
+
 </html>

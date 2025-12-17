@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인숖</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://via.placeholder.com">
+    <link rel="dns-prefetch" href="https://via.placeholder.com">
 </head>
 
 <body>
@@ -18,14 +20,40 @@
             <button id="search-btn">검색</button>
         </div>
         <nav>
-            <a href="index.html">홈</a>
-            <a href="ai-fit.html" class="ai-fit-link">🤖 AI 핏</a>
-            <a href="mypage.html">마이페이지</a>
-            <a href="orders.html">주문내역</a>
-            <a href="support.html">고객센터</a>
-            <a href="cart.html" class="cart-link">🛒 장바구니 <span id="cart-count">0</span></a>
+            <a href="wishlist.html" class="wishlist-link">❤️</a>
+            <a href="cart.html" class="cart-link">&#128722;</a>
+            <span id="user-info" style="color: #667eea; font-weight: bold;"></span>
+            <a href="login.html" id="login-btn"
+                style="background: #667eea; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none;">로그인</a>
+            <button id="logout-btn" onclick="logout()"
+                style="display: none; background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">로그아웃</button>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <button class="hamburger-menu" onclick="toggleMenu()">☰</button>
         </nav>
     </header>
+
+    <!-- 사이드 메뉴 -->
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h2>메뉴</h2>
+            <button class="close-menu" onclick="toggleMenu()">✕</button>
+        </div>
+        <div class="side-menu-content">
+            <a href="index.html">🏠 홈</a>
+            <a href="ai-fit.html">🤖 AI 핏</a>
+            <a href="virtual-fitting.html">👗 가상 피팅</a>
+            <a href="style-match.html">✨ 스타일 매칭</a>
+            <a href="recommendations.html">✨ 추천</a>
+            <a href="coupons.html">🎟️ 쿠폰</a>
+            <a href="mypage.html">👤 마이페이지</a>
+            <a href="orders.html">📦 주문내역</a>
+            <a href="support.html">💬 고객센터</a>
+            <a href="wishlist.html">❤️ 찜</a>
+            <a href="cart.html">🛒 장바구니</a>
+        </div>
+    </div>
+    <div id="menu-overlay" class="menu-overlay" onclick="toggleMenu()"></div>
+
     <main>
         <!-- Category Navigation -->
         <nav id="category-nav">
@@ -34,7 +62,6 @@
             <button class="category-btn" data-category="PANTS">PANTS</button>
             <button class="category-btn" data-category="OUTER">OUTER</button>
             <button class="category-btn" data-category="SHOES">SHOES</button>
-            <button id="theme-toggle" class="theme-btn" title="다크모드 전환">🌙</button>
         </nav>
 
         <!-- Sort and Filter Bar -->
@@ -49,9 +76,40 @@
                     <option value="rating">평점순</option>
                 </select>
             </div>
+            <div class="filter-section">
+                <button id="filter-toggle-btn" onclick="toggleFilters()">🔍 필터</button>
+            </div>
             <div class="view-options">
                 <button onclick="window.location.href='wishlist.html'" class="wishlist-link">❤️ 찜한상품 <span
                         id="wishlist-count">0</span></button>
+            </div>
+        </div>
+
+        <!-- Advanced Filters (collapsible) -->
+        <div id="advanced-filters" class="advanced-filters" style="display: none;">
+            <div class="filter-group">
+                <label>가격대:</label>
+                <div class="price-range">
+                    <input type="number" id="price-min" placeholder="최소" min="0" step="1000">
+                    <span>~</span>
+                    <input type="number" id="price-max" placeholder="최대" min="0" step="1000">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>브랜드:</label>
+                <div class="filter-checkboxes" id="brand-filters">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>색상:</label>
+                <div class="filter-checkboxes color-filters" id="color-filters">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button onclick="applyFilters()" class="btn-apply">필터 적용</button>
+                <button onclick="resetFilters()" class="btn-reset">초기화</button>
             </div>
         </div>
 
@@ -80,11 +138,32 @@
 
     <script src="main.js"></script>
     <script>
+        // 햄버거 메뉴 토글
+        function toggleMenu() {
+            const sideMenu = document.getElementById('side-menu');
+            const overlay = document.getElementById('menu-overlay');
+
+            if (sideMenu.classList.contains('active')) {
+                sideMenu.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                sideMenu.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
         // Update cart count on page load
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-            document.getElementById('cart-count').textContent = totalItems;
+            const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) {
+                if (totalItems > 0) {
+                    countElement.classList.add('has-items');
+                } else {
+                    countElement.classList.remove('has-items');
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -92,7 +171,156 @@
             updateWishlistCount();
             loadRecentProducts();
             loadTheme();
+            populateFilterOptions();
         });
+
+        // 필터 옵션 동적 생성
+        function populateFilterOptions() {
+            const brands = [...new Set(PRODUCTS.map(p => p.brand))].sort();
+            const colors = [...new Set(PRODUCTS.flatMap(p => p.colors || []))].sort();
+
+            const brandFilters = document.getElementById('brand-filters');
+            const colorFilters = document.getElementById('color-filters');
+
+            brandFilters.innerHTML = brands.map(brand => `
+                <label class="filter-checkbox">
+                    <input type="checkbox" name="brand" value="${brand}">
+                    <span>${brand}</span>
+                </label>
+            `).join('');
+
+            colorFilters.innerHTML = colors.map(color => `
+                <label class="filter-checkbox color-option">
+                    <input type="checkbox" name="color" value="${color}">
+                    <span class="color-circle" style="background-color: ${getColorCode(color)};" title="${color}"></span>
+                    <span>${color}</span>
+                </label>
+            `).join('');
+        }
+
+        function getColorCode(colorName) {
+            const colorMap = {
+                '화이트': '#ffffff',
+                '블랙': '#000000',
+                '그레이': '#808080',
+                '네이비': '#000080',
+                '블루': '#0066cc',
+                '라이트블루': '#87ceeb',
+                '베이지': '#f5f5dc',
+                '브라운': '#8b4513',
+                '카키': '#c3b091',
+                '카멜': '#c19a6b',
+                '핑크': '#ffb6c1',
+                '아이보리': '#fffff0'
+            };
+            return colorMap[colorName] || '#ddd';
+        }
+
+        // 필터 토글
+        function toggleFilters() {
+            const filters = document.getElementById('advanced-filters');
+            filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // 필터 적용
+        function applyFilters() {
+            const priceMin = parseInt(document.getElementById('price-min').value) || 0;
+            const priceMax = parseInt(document.getElementById('price-max').value) || Infinity;
+
+            const selectedBrands = Array.from(document.querySelectorAll('input[name="brand"]:checked'))
+                .map(cb => cb.value);
+            const selectedColors = Array.from(document.querySelectorAll('input[name="color"]:checked'))
+                .map(cb => cb.value);
+
+            let filtered = PRODUCTS.filter(product => {
+                // 가격 필터
+                if (product.price < priceMin || product.price > priceMax) return false;
+
+                // 브랜드 필터
+                if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
+
+                // 색상 필터
+                if (selectedColors.length > 0) {
+                    const hasColor = product.colors?.some(c => selectedColors.includes(c));
+                    if (!hasColor) return false;
+                }
+
+                return true;
+            });
+
+            renderFilteredProducts(filtered);
+            showToast(`${filtered.length}개의 상품이 검색되었습니다.`);
+        }
+
+        function renderFilteredProducts(products) {
+            const productList = document.getElementById("product-list");
+            const categoryTitle = document.getElementById("category-title");
+
+            productList.innerHTML = "";
+            categoryTitle.textContent = `필터 결과 (${products.length}개)`;
+
+            if (products.length === 0) {
+                productList.innerHTML = '<p style="text-align: center; padding: 50px; color: #999;">조건에 맞는 상품이 없습니다.</p>';
+                return;
+            }
+
+            const reviewsCache = {};
+            products.forEach(product => {
+                const reviews = JSON.parse(localStorage.getItem(`reviews_${product.id}`)) || [];
+                reviewsCache[product.id] = {
+                    count: reviews.length,
+                    average: reviews.length > 0
+                        ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+                        : 0
+                };
+            });
+
+            const fragment = document.createDocumentFragment();
+
+            products.forEach(product => {
+                const reviewData = reviewsCache[product.id];
+                const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                const isWished = wishlist.includes(product.id);
+                const totalStock = window.getTotalStock ? window.getTotalStock(product.id) : 999;
+                const isSoldOut = totalStock === 0;
+
+                const productCard = document.createElement("div");
+                productCard.className = "product-card";
+                if (isSoldOut) productCard.classList.add('sold-out');
+                productCard.onclick = function () { viewProduct(product.id); };
+                productCard.innerHTML = `
+                    ${isSoldOut ? '<div class="sold-out-badge">품절</div>' : ''}
+                    <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist(${product.id});" title="찜하기">❤️</button>
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" ${isSoldOut ? 'style="opacity: 0.5;"' : ''}>
+                    <h3>${product.name}</h3>
+                    <p class="product-brand">${product.brand}</p>
+                    <p class="product-price">₩${product.price.toLocaleString()}</p>
+                    <div class="product-colors">${(product.colors || []).map(c =>
+                    `<span class="color-dot" style="background-color: ${getColorCode(c)};" title="${c}"></span>`
+                ).join('')}</div>
+                    <div class="product-review-info">
+                        <span class="rating-stars">${'⭐'.repeat(Math.round(reviewData.average))}</span>
+                        <span class="rating-text">${reviewData.average} (${reviewData.count})</span>
+                    </div>
+                `;
+                fragment.appendChild(productCard);
+            });
+
+            productList.appendChild(fragment);
+        }
+
+        // 필터 초기화
+        function resetFilters() {
+            document.getElementById('price-min').value = '';
+            document.getElementById('price-max').value = '';
+            document.querySelectorAll('input[name="brand"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="color"]').forEach(cb => cb.checked = false);
+
+            // 전체 상품 다시 로드
+            const currentCategory = document.querySelector('.category-btn.active')?.dataset.category || 'ALL';
+            filterByCategory(currentCategory);
+            showToast('필터가 초기화되었습니다.');
+        }
 
         // Toast 알림 함수
         function showToast(message, duration = 3000) {
@@ -129,12 +357,17 @@
                 card.className = 'product-card-small';
                 card.onclick = function () { viewProduct(product.id); };
                 card.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" loading="lazy">
+                    <img data-src="${product.image}" alt="${product.name}" class="lazy-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='200'%3E%3Crect fill='%23f0f0f0' width='150' height='200'/%3E%3C/svg%3E">
                     <h4>${product.name}</h4>
                     <p>₩${product.price.toLocaleString()}</p>
                 `;
                 list.appendChild(card);
             });
+
+            // 지연 로딩 적용
+            if (window.lazyLoader) {
+                window.lazyLoader.refresh();
+            }
         }
 
         // 다크모드 토글
@@ -206,20 +439,27 @@
                 const reviewData = reviewsCache[product.id];
                 const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
                 const isWished = wishlist.includes(product.id);
+                const totalStock = window.getTotalStock ? window.getTotalStock(product.id) : 999;
+                const isSoldOut = totalStock === 0;
 
                 const productCard = document.createElement("div");
                 productCard.className = "product-card";
+                if (isSoldOut) productCard.classList.add('sold-out');
                 productCard.onclick = function () { viewProduct(product.id); };
                 productCard.innerHTML = `
+                    ${isSoldOut ? '<div class="sold-out-badge">품절</div>' : ''}
                     <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist(${product.id});" title="찜하기">❤️</button>
-                    <img src="${product.image}" alt="${product.name}" loading="lazy">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" ${isSoldOut ? 'style="opacity: 0.5;"' : ''}>
                     <h3>${product.name}</h3>
+                    <p class="product-brand">${product.brand || ''}</p>
                     <p class="product-price">₩${product.price.toLocaleString()}</p>
+                    <div class="product-colors">${(product.colors || []).map(c =>
+                    `<span class="color-dot" style="background-color: ${getColorCode(c)};" title="${c}"></span>`
+                ).join('')}</div>
                     <div class="product-review-info">
                         <span class="rating-stars">${'⭐'.repeat(Math.round(reviewData.average))}</span>
                         <span class="rating-text">${reviewData.average} (${reviewData.count})</span>
                     </div>
-                    <button class="cart-icon-btn" onclick="event.stopPropagation(); addToCart(${product.id}); updateCartCount();" title="장바구니에 추가">🛒</button>
                 `;
                 fragment.appendChild(productCard);
             });
@@ -306,28 +546,100 @@
 
             // DocumentFragment 사용으로 DOM 조작 최적화
             const fragment = document.createDocumentFragment();
+            const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 
             filteredProducts.forEach(product => {
                 const reviewData = reviewsCache[product.id];
+                const isWished = wishlist.includes(product.id);
+                const totalStock = window.getTotalStock ? window.getTotalStock(product.id) : 999;
+                const isSoldOut = totalStock === 0;
 
                 const productCard = document.createElement("div");
                 productCard.className = "product-card";
+                if (isSoldOut) productCard.classList.add('sold-out');
                 productCard.onclick = function () { viewProduct(product.id); };
                 productCard.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" loading="lazy">
+                    ${isSoldOut ? '<div class="sold-out-badge">품절</div>' : ''}
+                    <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist(${product.id});" title="찜하기">❤️</button>
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" ${isSoldOut ? 'style="opacity: 0.5;"' : ''}>
                     <h3>${product.name}</h3>
-                    <p>₩${product.price.toLocaleString()}</p>
+                    <p class="product-brand">${product.brand}</p>
+                    <p class="product-price">₩${product.price.toLocaleString()}</p>
+                    <div class="product-colors">${(product.colors || []).map(c =>
+                    `<span class="color-dot" style="background-color: ${getColorCode(c)};" title="${c}"></span>`
+                ).join('')}</div>
                     <div class="product-review-info">
                         <span class="rating-stars">${'⭐'.repeat(Math.round(reviewData.average))}</span>
                         <span class="rating-text">${reviewData.average} (${reviewData.count})</span>
                     </div>
-                    <button class="cart-icon-btn" onclick="event.stopPropagation(); addToCart(${product.id}); updateCartCount();" title="장바구니에 추가">🛒</button>
                 `;
                 fragment.appendChild(productCard);
             });
 
             productList.appendChild(fragment);
         }
+
+        // 장바구니 추가 (로그인 체크 포함)
+        function addToCartFromIndex(productId) {
+            if (!window.isLoggedIn || !window.isLoggedIn()) {
+                if (confirm('장바구니는 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?')) {
+                    window.location.href = 'login.html?return=' + encodeURIComponent(window.location.pathname);
+                }
+                return;
+            }
+            addToCart(productId);
+            updateCartCount();
+        }
+
+        // 사용자 상태 업데이트
+        function updateUserStatus() {
+            const currentUser = getCurrentUser();
+            const userInfo = document.getElementById('user-info');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            if (currentUser) {
+                userInfo.textContent = currentUser.name + '님';
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                userInfo.textContent = '게스트';
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // 페이지 로드 시 사용자 상태 업데이트
+        window.addEventListener('load', updateUserStatus);
+    </script>
+    <script src="performance.js"></script>
+    <script>
+        // 성능 최적화 적용
+        document.addEventListener('DOMContentLoaded', () => {
+            // 검색 입력 디바운스
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                const debouncedSearch = debounce((e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    if (query.length > 0) {
+                        searchProducts(query);
+                    } else {
+                        loadProducts();
+                    }
+                }, 300);
+
+                searchInput.addEventListener('input', debouncedSearch);
+            }
+
+            // 무한 스크롤 초기화 (선택적)
+            // infiniteScroll = new InfiniteScroll({
+            //     container: document.getElementById('products-list'),
+            //     loadMore: async (page) => {
+            //         // 다음 페이지 로드 로직
+            //         return true; // 더 로드할 데이터가 있으면 true
+            //     }
+            // });
+        });
     </script>
 </body>
 

@@ -36,6 +36,10 @@
     <footer>
         <p>&copy; 2025 인숖. All rights reserved.</p>
     </footer>
+
+    <!-- 토스트 알림 -->
+    <div id="toast" class="toast"></div>
+
     <script src="main.js"></script>
     <script>
         // Load and display cart items
@@ -57,17 +61,21 @@
             cart.forEach((item, index) => {
                 // quantity 처리 (기존 qty와 새로운 quantity 모두 지원)
                 const quantity = item.quantity || item.qty || 1;
-                const itemTotal = item.price * quantity;
+                const itemTotal = (item.price || 0) * quantity;
                 total += itemTotal;
+
+                // 이미지 URL 확인
+                const imageUrl = item.image || 'https://via.placeholder.com/150';
 
                 const cartItem = document.createElement("div");
                 cartItem.className = "cart-item";
                 cartItem.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}">
+                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="item-details">
                         <h3>${item.name}</h3>
+                        ${item.color ? `<p class="item-color">색상: <strong>${item.color}</strong></p>` : ''}
                         ${item.size ? `<p class="item-size">사이즈: <strong>${item.size}</strong></p>` : ''}
-                        <p class="item-price">단가: ₩${item.price.toLocaleString()}</p>
+                        <p class="item-price">단가: ₩${(item.price || 0).toLocaleString()}</p>
                         <div class="quantity-control">
                             <label for="quantity-${index}">수량:</label>
                             <div class="quantity-buttons">
@@ -124,7 +132,6 @@
                 // quantity와 qty 모두 업데이트
                 cart[index].quantity = newQty;
                 cart[index].qty = newQty;
-                cart[index].qty = newQty;
                 localStorage.setItem("cart", JSON.stringify(cart));
                 loadCart();
             }
@@ -155,6 +162,11 @@
 
         // Load cart on page load
         document.addEventListener('DOMContentLoaded', function () {
+            // 로그인 체크
+            if (!requireLogin('장바구니는 로그인이 필요합니다.')) {
+                return;
+            }
+
             loadTheme();
             loadCart();
         });
